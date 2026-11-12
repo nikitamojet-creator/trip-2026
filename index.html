@@ -29,7 +29,7 @@
   :root{--fb-bg:#1b1a21; --fb-bg2:#111015; --fb-text:#f3f2f7; --fb-hint:#8e8c99; --fb-link:#8f8cff; --fb-btn:#7b78ff; --shadow:none}
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg2);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+html,body{overflow-x:hidden;margin:0;background:var(--bg2);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 a{color:var(--link);text-decoration:none}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:720px;margin:0 auto}
@@ -164,7 +164,7 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .todo.done .grow{text-decoration:line-through;color:var(--hint)}
 .x{background:none;border:0;color:var(--hint);font-size:20px;padding:0 4px}
 .sheet-bg{position:fixed;inset:0;background:rgba(10,8,20,.45);z-index:50;display:none;backdrop-filter:blur(2px)}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--card);border-radius:24px 24px 0 0;max-height:92vh;overflow-y:auto;padding:8px 16px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);max-width:720px;margin:0 auto}
+.sheet{overflow-x:hidden;position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--card);border-radius:24px 24px 0 0;max-height:92vh;overflow-y:auto;padding:8px 16px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.2,1);max-width:720px;margin:0 auto}
 .sheet.open{transform:none}
 .sheet .grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 12px}
 .sheet h2{margin:0 0 12px;font-size:20px;letter-spacing:-.01em}
@@ -174,10 +174,25 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .sheet .card{box-shadow:none;border:1px solid var(--line)}
 label.f{display:block;margin-bottom:11px;font-size:13px;color:var(--hint)}
 label.f > span{display:block;margin-bottom:4px;font-weight:500}
-input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg2);border:1.5px solid transparent;border-radius:12px;padding:10px 12px;outline:none}
+input,select,textarea{min-width:0;max-width:100%;width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg2);border:1.5px solid transparent;border-radius:12px;padding:10px 12px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--btn)}
 textarea{min-height:76px;resize:vertical}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-height:46px;text-align:left;display:block}
+input::-webkit-date-and-time-value{text-align:left}
+details.adv{margin:2px 0 6px}
+details.adv>summary{color:var(--link);font-weight:600;padding:10px 0;cursor:pointer;list-style:none;font-size:14px}
+details.adv>summary::-webkit-details-marker{display:none}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:14px;text-align:center;color:var(--text);display:block;cursor:pointer;font-weight:600;font-size:14px}
+.drop small{display:block;color:var(--hint);font-weight:400;margin-top:2px}
+.flist{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.flist label{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:12px;padding:8px 10px;color:var(--text);font-size:14px}
+.flist input{width:auto}
+.fview img{width:100%;border-radius:14px;display:block}
+.join{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.join:first-child{border-top:0}
+.prow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
 .pp{display:flex;flex-wrap:wrap;gap:6px}
 .pp label{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border-radius:999px;padding:5px 11px 5px 5px;color:var(--text);font-size:14px;cursor:pointer;border:1.5px solid transparent}
 .pp label:has(input:checked){border-color:var(--btn);background:color-mix(in srgb,var(--btn) 10%,var(--bg2))}
@@ -310,29 +325,35 @@ const SCHEMA = {
   stops: { title: 'Город маршрута', fields: [
     ['city','Город','text',{req:1, ph:'Бангкок'}], ['country','Страна','text',{ph:'Таиланд'}],
     [['from','Приезд','date'],['to','Отъезд','date']],
-    ['coords','Координаты или ссылка на карту','coords'], ['notes','Заметки','textarea'] ]},
+    ['coords','Координаты или ссылка на карту','coords',{adv:1}], ['notes','Заметки','textarea',{adv:1}] ]},
   stays: { title: 'Жильё', fields: [
-    ['status','Статус','select',{options:opts(STATUS)}],
-    ['name','Название','text',{req:1, ph:'Lub d Siam'}], ['city','Город','select',{options:cityOpts}],
+    ['status','','chips',{options:[['booked','✅ Забронировано'],['todo','🔎 Ищем']]}],
+    ['name','Название','text',{req:1, ph:'Например: Airbnb у пляжа'}], ['city','Город','select',{options:cityOpts}],
     [['checkin','Заезд','date'],['checkout','Выезд','date']],
-    ['address','Адрес','text'], ['coords','Координаты или ссылка на карту','coords'],
-    ['link','Ссылка на бронь','url'], ['confirmation','Номер брони / PIN','text'],
-    [['price','Цена','text',{ph:'12 000 ₽'}],['paid','Оплата','select',{options:opts(PAID)}]],
-    ['phone','Телефон хоста','text'], ['who','Кто живёт (пусто = все)','people'], ['notes','Заметки','textarea'] ]},
+    ['link','Ссылка (Booking, Airbnb…)','url'],
+    ['files','Скрин или PDF брони','file'],
+    ['address','Адрес','text',{adv:1}], ['coords','Координаты или ссылка на карту','coords',{adv:1}],
+    ['confirmation','Номер брони / PIN','text',{adv:1}],
+    [['price','Цена','text',{ph:'12 000 ₽',adv:1}],['paid','Оплата','select',{options:opts(PAID),adv:1}]],
+    ['phone','Телефон хоста','text',{adv:1}], ['who','Кто живёт (никто не выбран = все)','people',{adv:1}], ['notes','Заметки','textarea',{adv:1}] ]},
   transport: { title: 'Билет', fields: [
-    ['status','Статус','select',{options:opts(STATUS)}],
-    ['type','Тип','select',{options:opts(TYPES)}],
-    [['from','Откуда','text',{req:1, ph:'Москва (SVO)'}],['to','Куда','text',{req:1, ph:'Бангкок (BKK)'}]],
-    [['depart','Отправление','datetime'],['arrive','Прибытие','datetime']],
-    [['number','Рейс / номер','text',{ph:'SU 270'}],['carrier','Перевозчик','text']],
-    ['confirmation','Код брони / PNR','text'], ['link','Ссылка на билет','url'],
-    [['price','Цена','text'],['seats','Места / багаж','text']],
-    ['who','Чей билет (пусто = все)','people'], ['notes','Заметки','textarea'] ]},
+    ['status','','chips',{options:[['booked','✅ Билет есть'],['todo','🔎 Ещё не купили']]}],
+    ['type','','chips',{options:opts(TYPES)}],
+    [['from','Откуда','text',{req:1, ph:'Москва'}],['to','Куда','text',{req:1, ph:'Бангкок'}]],
+    ['depart','Отправление','datetime'],
+    ['who','Чей билет','people'],
+    ['files','Скрин или PDF билета','file'],
+    ['arrive','Прибытие','datetime',{adv:1}],
+    [['number','Рейс / номер','text',{ph:'SU 270',adv:1}],['carrier','Перевозчик','text',{adv:1}]],
+    ['confirmation','Код брони / PNR','text',{adv:1}], ['link','Ссылка на билет','url',{adv:1}],
+    [['price','Цена','text',{adv:1}],['seats','Места / багаж','text',{adv:1}]],
+    ['notes','Заметки','textarea',{adv:1}] ]},
   places: { title: 'Место', fields: [
     ['name','Название','text',{req:1}], [['city','Город','select',{options:cityOpts}],['cat','Тип','select',{options:opts(CATS)}]],
-    [['day','День','date'],['time','Время','text',{ph:'10:00'}]],
-    ['coords','Координаты или ссылка на карту','coords'], ['link','Ссылка','url'],
-    ['price','Цена / вход','text'], ['notes','Заметки','textarea'] ]},
+    ['link','Ссылка','url'],
+    [['day','День','date',{adv:1}],['time','Время','text',{ph:'10:00',adv:1}]],
+    ['coords','Координаты или ссылка на карту','coords',{adv:1}],
+    ['price','Цена / вход','text',{adv:1}], ['notes','Заметки','textarea',{adv:1}] ]},
   options: { title: 'Вариант / ссылка', fields: [
     ['url','Ссылка (Booking, Airbnb, Aviasales, 12go…)','url',{req:1}],
     ['price','Цена','text',{ph:'8 400 ฿ за всех'}], ['note','Комментарий','textarea'] ]},
@@ -363,10 +384,38 @@ async function putMeta(meta) {
   if (mode === 'fb') return fb.set(fb.ref(fb.db, `${fb.root}/meta`), clean(meta));
   data.meta = meta; saveCache(); render();
 }
+const SECS = ['meta','stops','stays','transport','places','notes','todo','options'];
 async function replaceAll(d) {
-  if (mode === 'fb') return fb.set(fb.ref(fb.db, fb.root), d);
+  if (mode === 'fb') return Promise.all(SECS.map(k => fb.set(fb.ref(fb.db, `${fb.root}/${k}`), d[k] ?? null)));
   data = d; saveCache(); render();
 }
+/* файлы (скрины билетов): сами данные лежат отдельно в files/, в карточке только описание */
+function readAsDataURL(f) { return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }); }
+async function compressImage(f) {
+  const url = URL.createObjectURL(f);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/jpeg', 0.82);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function saveFile(f) {
+  const isImg = /^image\//.test(f.type), isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+  if (!isImg && !isPdf) throw new Error('Можно картинку или PDF');
+  if (isPdf && f.size > 4e6) throw new Error('PDF больше 4 МБ');
+  const dataUrl = isImg ? await compressImage(f) : await readAsDataURL(f);
+  const id = uid(), meta = { name: f.name || 'file', type: isImg ? 'image/jpeg' : 'application/pdf', by: author() || undefined, at: Date.now() };
+  if (mode === 'fb') await fb.set(fb.ref(fb.db, `${fb.root}/files/${id}`), { data: dataUrl, ...clean(meta) });
+  else (data.files ||= {})[id] = { data: dataUrl, ...meta };
+  return [id, clean(meta)];
+}
+async function getFile(id) {
+  if (mode === 'fb') return (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`))).val();
+  return data.files?.[id];
+}
+function removeFile(id) { if (mode === 'fb') fb.remove(fb.ref(fb.db, `${fb.root}/files/${id}`)); else delete data.files?.[id]; }
 
 async function initStore() {
   const cached = loadCache();
@@ -379,13 +428,15 @@ async function initStore() {
         import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`)]);
       const app = initializeApp(CFG.firebase);
       const db = dbm.getDatabase(app);
-      fb = { db, ref: dbm.ref, set: dbm.set, remove: dbm.remove, root: `trips/${CFG.tripId}` };
-      mode = 'fb';
+      fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, root: `trips/${CFG.tripId}` };
+      mode = 'fb'; delete data.files;
       dbm.onValue(dbm.ref(db, '.info/connected'), s => { online = !!s.val(); renderHeader(); });
-      dbm.onValue(dbm.ref(db, fb.root), snap => {
-        data = snap.val() || {};
-        if (!data.meta) { replaceAll(seedData()); return; }
-        saveCache(); render(); askMeOnce();
+      let raf = 0; const loaded = new Set();
+      for (const sec of SECS) dbm.onValue(dbm.ref(db, `${fb.root}/${sec}`), snap => {
+        data[sec] = snap.val() || (sec === 'meta' ? null : {});
+        if (sec === 'meta' && !data.meta) { putMeta(seedData().meta); return; }
+        loaded.add(sec);
+        cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { saveCache(); render(); if (loaded.size === SECS.length) askMeOnce(); });
       }, err => toast('Нет доступа к базе: ' + err.code));
     } catch (e) { console.error(e); toast('Нет связи, показываю сохранённое'); }
   } else if (!cached) { data = seedData(); saveCache(); }
@@ -468,7 +519,8 @@ function legHtml(t) {
   return `<div class="leg tap ${other ? 'other' : ''}" data-edit="transport:${t.id}"><div class="ic">${ic}</div>
     <div class="t">${esc(cityOfPt(t.from))} → ${esc(cityOfPt(t.to))}</div>
     <div class="s">${[t.number ? esc(t.number) : '', time].filter(Boolean).join(' · ')}
-      ${t.status === 'todo' ? '<span class="badge warn">не куплено</span>' : ''} ${avs(t.who, 4)}</div></div>`;
+      ${t.status === 'todo' ? '<span class="badge warn">не куплено</span>' : ''}${t.files ? ' 📎' : ''} ${avs(t.who, 4)}</div>
+    ${other ? `<div style="margin-top:6px">${joinChip(t)}</div>` : ''}</div>`;
 }
 function gapHtml(from, to, date, label) {
   return `<div class="leg gap tap" data-addleg="${esc(from || '')}|${esc(to || '')}|${esc(date || '')}"><div class="ic">❔</div>${label || `Как добираемся ${from ? 'из ' + esc(from) + ' ' : ''}в ${esc(to)}? <u>Добавить</u>`}</div>`;
@@ -488,6 +540,7 @@ function renderRoute() {
     <button class="stat tap" data-go="book:stays"><b>${stOk}<span style="font-size:14px;color:var(--hint)">/${st.length}</span></b><span>жильё готово</span></button>
     <button class="stat tap" data-go="notes"><b>${notes.length}</b><span>заметок</span></button></div>`;
   if (!stops.length) return $('#tab-route').innerHTML = h + `<div class="empty"><b>🧭</b>Добавьте первый город маршрута<br><br><button class="chip link" data-add="stops">＋ Город</button></div>`;
+  if (mineMode && !trs.some(t => t.who?.includes(me)) && likeButtons()) h += `<div class="card" style="margin-top:10px"><b>✈️ У тебя пока нет билетов</b><div class="muted" style="margin:2px 0 10px">Летишь теми же рейсами, что и кто-то из компании? Отметь в одно нажатие:</div><div class="chips">${likeButtons()}</div></div>`;
   h += `<div class="h2">Схема маршрута <button data-add="stops">＋ город</button></div><div class="jr">`;
   const first = before[0] || (by[stops[0].id] || [])[0];
   if (first) h += `<div class="node home"><div class="node-h"><b style="font-size:15px">🏠 ${esc(cityOfPt(first.from))}</b><span class="n">старт ${fmtD(first.depart)}</span></div></div>`;
@@ -495,7 +548,7 @@ function renderRoute() {
   stops.forEach((s, i) => {
     const legs = by[s.id] || [];
     if (legs.length) legs.forEach(t => h += legHtml(t));
-    else if (mineMode && (allBy[s.id] || []).length) h += gapHtml(i ? stops[i-1].city : '', s.city, s.from, `У тебя нет билета до ${esc(s.city)} <span class="muted">(у других есть)</span>. <u>Добавить свой</u>`);
+    else if (mineMode && (allBy[s.id] || []).length) h += `<div class="leg gap tap" data-joinstop="${s.id}"><div class="ic">❔</div>У тебя нет билета до ${esc(s.city)}. <u>Лечу с остальными</u> или <u>загрузить свой</u></div>`;
     else if (i > 0) h += gapHtml(stops[i-1].city, s.city, s.from);
     else if (mineMode) h += gapHtml('', s.city, s.from, `Как ты добираешься до ${esc(s.city)}? <u>Добавить билет</u>`);
     const n = s.from && s.to ? daysBetween(s.from, s.to) : 0;
@@ -602,7 +655,7 @@ function ticketCard(x) {
       ${x.notes ? `<div class="pre muted" style="margin-top:8px">${linkify(x.notes)}</div>` : ''}
     </div>
     <div class="pass-bot">${avs(x.who)}<span class="meta">${[tn, x.number, x.carrier].filter(Boolean).map(esc).join(' · ')}</span><span class="grow"></span>
-      ${copyChip(x.confirmation, 'PNR')}${extA(x.link, '🎫 Билет')}</div>
+      ${copyChip(myPnr(x), 'PNR')}${extA(x.link, '🎫 Билет')}${filesChips(x)}${joinChip(x)}${myChip(x)}</div>
     ${optionsHtml('transport', x, true)}
   </div>`;
 }
@@ -615,7 +668,7 @@ function stayCard(s) {
     ${s.address ? `<div class="muted" style="margin-top:6px">📍 ${esc(s.address)}</div>` : ''}
     ${s.price ? `<div class="muted">💰 ${esc(s.price)}</div>` : ''}
     ${s.notes ? `<div class="pre muted" style="margin-top:4px">${linkify(s.notes)}</div>` : ''}
-    <div class="btns">${s.who?.length ? avs(s.who) : ''}${extA(mapsUrl(s), '🗺 Карта')}${extA(s.link, '🔗 Бронь')}${copyChip(s.confirmation, '№')}${s.phone ? `<a class="chip link ext" href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">📞</a>` : ''}</div>
+    <div class="btns">${s.who?.length ? avs(s.who) : ''}${extA(mapsUrl(s), '🗺 Карта')}${extA(s.link, '🔗 Бронь')}${copyChip(s.confirmation, '№')}${filesChips(s)}${s.phone ? `<a class="chip link ext" href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">📞</a>` : ''}</div>
     ${optionsHtml('stays', s)}
   </div>`;
 }
@@ -750,12 +803,23 @@ function fieldHtml(f, it) {
     if (v && !op.some(([k]) => k === v)) op = [...op, [v, v]];
     input = `<select id="${id}" name="${name}">${op[0]?.[0] === '' ? '' : '<option value=""></option>'}${op.map(([k, l]) => `<option value="${esc(k)}" ${k === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
   }
+  else if (type === 'chips') {
+    const op = typeof o.options === 'function' ? o.options() : o.options;
+    return `<div class="pp" style="margin-bottom:12px">${op.map(([k, l]) => `<label><input type="radio" name="${name}" value="${esc(k)}" ${k === v ? 'checked' : ''}>${esc(l)}</label>`).join('')}</div>`;
+  }
+  else if (type === 'datetime') {
+    input = `<div class="two"><input type="date" name="${name}__d" value="${esc(String(v).slice(0, 10))}"><input type="time" name="${name}__t" value="${esc(fmtT(v))}"></div>`;
+  }
+  else if (type === 'file') {
+    const fl = Object.entries(it.files || {});
+    input = `${fl.length ? `<div class="flist">${fl.map(([fid, m]) => `<label><span>📎</span><span class="grow">${esc(m.type?.includes('pdf') ? 'PDF' : 'Скрин')}${m.by ? ' · ' + esc(m.by) : ''}</span><input type="checkbox" name="rmfile" value="${fid}" title="удалить"> удалить</label>`).join('')}</div>` : ''}
+      <label class="drop">📎 Прикрепить скрин или PDF<small>можно несколько; билет сразу засчитается</small><input type="file" name="${name}" accept="image/*,application/pdf" multiple hidden></label><div class="hint-s" data-fpick></div>`;
+  }
   else if (type === 'people') {
     const ppl = [...new Set([...people(), ...(it.who || [])])];
     input = `<div class="pp">${ppl.map(p => `<label><input type="checkbox" name="who" value="${esc(p)}" ${(it.who || []).includes(p) ? 'checked' : ''}>${av(p)}${esc(p)}</label>`).join('')}</div>`;
   } else {
     const t = { date: 'date', datetime: 'datetime-local', url: 'url' }[type] || 'text';
-    if (type === 'datetime' && v && v.length <= 11) v = v.slice(0, 10) + 'T12:00';
     input = `<input id="${id}" name="${name}" type="${t}" value="${esc(v)}" ${o.req ? 'required' : ''} placeholder="${esc(o.ph || (type === 'coords' ? '13.7563, 100.5018 или ссылка Google Maps' : ''))}" autocomplete="off">`;
     if (type === 'coords') input += `<div class="hint-s">Google Maps: долгий тап по точке → скопировать координаты, или «Поделиться» → ссылка. <a href="#" data-geo="${id}">📍 Я здесь</a></div>`;
   }
@@ -764,20 +828,41 @@ function fieldHtml(f, it) {
 function openForm(sec, id, preset = {}) {
   const sc = SCHEMA[sec];
   const it = id ? { ...(data[sec]?.[id] || {}) } : { ...preset };
-  let body = '';
-  for (const f of sc.fields) body += Array.isArray(f[0]) ? `<div class="two">${f.map(x => fieldHtml(x, it)).join('')}</div>` : fieldHtml(f, it);
+  if (sec === 'transport') { it.type ||= 'plane'; it.status ||= 'booked'; }
+  if (sec === 'stays') it.status ||= 'booked';
+  const isAdv = f => (Array.isArray(f[0]) ? f[0][3] : f[3])?.adv;
+  const fh = f => Array.isArray(f[0]) ? `<div class="two">${f.map(x => fieldHtml(x, it)).join('')}</div>` : fieldHtml(f, it);
+  const basic = sc.fields.filter(f => !isAdv(f)).map(fh).join('');
+  const advF = sc.fields.filter(isAdv);
+  const advFilled = advF.flatMap(f => Array.isArray(f[0]) ? f : [f]).some(([n, , t]) => t === 'coords' ? it.lat != null || it.mapUrl : (Array.isArray(it[n]) ? it[n].length : it[n]));
+  const adv = advF.length ? `<details class="adv" ${advFilled ? 'open' : ''}><summary>Подробнее (необязательно) ▾</summary>${advF.map(fh).join('')}</details>` : '';
   const meta = it.updatedAt ? `<div class="muted" style="margin-top:12px;text-align:center">Изменено ${new Date(it.updatedAt).toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}${it.updatedBy ? ' · ' + esc(it.updatedBy) : ''}</div>` : '';
-  openSheet(`<form id="itemForm"><h2>${id ? '' : 'Новое: '}${esc(sc.title)}</h2>${body}
-    <div class="actions">${id ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri">Сохранить</button></div>${meta}</form>`);
+  openSheet(`<form id="itemForm"><h2>${id ? '' : 'Новое: '}${esc(sc.title)}</h2>${basic}${adv}
+    <div class="actions">${id ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri" id="saveBtn">Сохранить</button></div>${meta}</form>`);
   const form = $('#itemForm');
   $('#cancelBtn').onclick = closeSheet;
-  if (id) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { del(sec, id); closeSheet(); toast('Удалено'); } });
-  form.onsubmit = e => {
+  form.addEventListener('change', e => { if (e.target.type === 'file') { const n = e.target.files.length; form.querySelector('[data-fpick]').textContent = n ? `Выбрано файлов: ${n}. Нажмите «Сохранить»` : ''; const st = form.querySelector('input[name=status][value=booked]'); if (n && st) st.checked = true; } });
+  if (id) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { Object.keys(it.files || {}).forEach(removeFile); del(sec, id); closeSheet(); toast('Удалено'); } });
+  form.onsubmit = async e => {
     e.preventDefault();
     const out = { ...it };
     for (const f of sc.fields.flatMap(f => Array.isArray(f[0]) ? f : [f])) {
       const [name, , type] = f;
       if (type === 'people') out.who = [...form.querySelectorAll('input[name=who]:checked')].map(x => x.value);
+      else if (type === 'chips') out[name] = form.querySelector(`input[name=${name}]:checked`)?.value || '';
+      else if (type === 'datetime') { const d = form.elements[name + '__d'].value, t = form.elements[name + '__t'].value; out[name] = d ? (t ? d + 'T' + t : d) : ''; }
+      else if (type === 'file') {
+        const files = { ...(it.files || {}) };
+        form.querySelectorAll('input[name=rmfile]:checked').forEach(x => { delete files[x.value]; removeFile(x.value); });
+        const picked = [...(form.elements[name]?.files || [])];
+        if (picked.length) {
+          const btn = $('#saveBtn'); btn.disabled = true; btn.textContent = 'Загружаю…';
+          try { for (const fl of picked) { const [fid, m] = await saveFile(fl); files[fid] = m; } }
+          catch (err) { toast(err.message || 'Не удалось загрузить файл'); btn.disabled = false; btn.textContent = 'Сохранить'; return; }
+          if ('status' in out || sec === 'transport' || sec === 'stays') out.status = 'booked';
+        }
+        out.files = Object.keys(files).length ? files : undefined;
+      }
       else if (type === 'coords') {
         const raw = form.elements[name].value.trim(), c = parseCoords(raw);
         delete out.lat; delete out.lng; delete out.mapUrl;
@@ -788,11 +873,75 @@ function openForm(sec, id, preset = {}) {
     put(sec, id || uid(), out); haptic('medium'); closeSheet(); toast('Сохранено');
   };
 }
+async function openFile(fid) {
+  openSheet(`<div class="empty">Загружаю…</div>`);
+  const f = await getFile(fid).catch(() => null);
+  if (!f) { openSheet(`<div class="empty">Файл не найден</div>`); return; }
+  if (f.type?.includes('pdf')) {
+    const blob = await (await fetch(f.data)).blob(), url = URL.createObjectURL(blob);
+    openSheet(`<h2>📎 PDF${f.by ? ' · ' + esc(f.by) : ''}</h2><iframe src="${url}" style="width:100%;height:65vh;border:0;border-radius:14px;background:#fff"></iframe>
+      <div class="actions"><a class="btn pri" href="${url}" download="${esc(f.name || 'ticket.pdf')}" style="text-align:center">Скачать PDF</a></div>`);
+  } else {
+    openSheet(`<h2>📎 Билет${f.by ? ' · ' + esc(f.by) : ''}</h2><div class="fview"><img src="${f.data}" alt=""></div><div class="hint-s" style="text-align:center">Долгое нажатие на картинку: сохранить или поделиться</div>`);
+  }
+}
+function openMyTicket(id, justJoined) {
+  const t = data.transport?.[id]; if (!t) return;
+  openSheet(`<form id="myForm"><h2>${justJoined ? '✅ Готово, ' + esc(t.number || 'билет') + ' теперь и твой' : 'Мой билет · ' + esc(t.number || '')}</h2>
+    <div class="muted" style="margin-bottom:12px">${esc(cityOfPt(t.from))} → ${esc(cityOfPt(t.to))} · ${fmtDW(t.depart)} ${fmtT(t.depart)}<br>Если у тебя свой код брони или свой билет, добавь его (необязательно).</div>
+    <label class="f"><span>Мой код брони / PNR</span><input name="pnr" value="${esc(t.pnrs?.[me] || '')}" placeholder="например NIVNJY" autocomplete="off" style="text-transform:uppercase"></label>
+    <label class="drop">📎 Мой скрин или PDF билета<input type="file" name="f" accept="image/*,application/pdf" multiple hidden></label><div class="hint-s" data-fpick></div>
+    <div class="actions"><button type="button" class="btn" id="cancelBtn">${justJoined ? 'Пропустить' : 'Отмена'}</button><button class="btn pri" id="saveBtn">Сохранить</button></div></form>`);
+  const form = $('#myForm');
+  $('#cancelBtn').onclick = closeSheet;
+  form.addEventListener('change', e => { if (e.target.type === 'file') form.querySelector('[data-fpick]').textContent = e.target.files.length ? `Выбрано: ${e.target.files.length}` : ''; });
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const cur = { ...data.transport[id] }, pnr = form.elements.pnr.value.trim().toUpperCase();
+    const pnrs = { ...(cur.pnrs || {}) }; if (pnr) pnrs[me] = pnr; else delete pnrs[me];
+    const files = { ...(cur.files || {}) };
+    const picked = [...form.elements.f.files];
+    if (picked.length) { const b = $('#saveBtn'); b.disabled = true; b.textContent = 'Загружаю…';
+      try { for (const fl of picked) { const [fid, m] = await saveFile(fl); files[fid] = m; } } catch (err) { toast(err.message || 'Не удалось'); b.disabled = false; b.textContent = 'Сохранить'; return; } }
+    put('transport', id, { ...cur, pnrs: Object.keys(pnrs).length ? pnrs : undefined, files: Object.keys(files).length ? files : undefined });
+    closeSheet(); toast('Сохранено'); haptic('medium');
+  };
+}
+const myPnr = x => (me && x.pnrs?.[me]) || x.confirmation;
+const myChip = x => me && x.who?.includes(me) ? `<button class="chip" data-myticket="${x.id}">${x.pnrs?.[me] || Object.values(x.files || {}).some(f => f.by === me) ? '✎ мой билет' : '＋ мой PNR / скрин'}</button>` : '';
+const filesChips = it => Object.entries(it.files || {}).map(([fid, m]) => `<button class="chip link" data-file="${fid}">📎 ${m.type?.includes('pdf') ? 'PDF' : 'Скрин'}${m.by ? ' · ' + esc(m.by) : ''}</button>`).join('');
+const joinChip = t => me && !isMine(t) ? `<button class="chip" data-join="${t.id}">🙋 Я тоже на этом рейсе</button>` : '';
+function likeButtons() {
+  const ppl = people().filter(p => p !== me).map(p => [p, list('transport').filter(t => t.who?.includes(p) && !isMine(t)).length]).filter(([, n]) => n);
+  return ppl.map(([p, n]) => `<button class="chip" data-like="${esc(p)}">${av(p)} Так же, как ${esc(p)} · ${n}</button>`).join('');
+}
+function joinLike(p) {
+  const ts = list('transport').filter(t => t.who?.includes(p) && !isMine(t));
+  ts.forEach(t => put('transport', t.id, { ...data.transport[t.id], who: [...new Set([...(t.who || []), me])] }));
+  haptic('medium'); closeSheet(); toast(`Готово: отметил тебя на ${ts.length} ${plural(ts.length, 'билете', 'билетах', 'билетах')}, так же, как ${p}`);
+}
+function openJoin(stopId) {
+  const s = data.stops?.[stopId]; if (!s) return;
+  const legs = (legsByStop(list('transport')).by[stopId] || []).filter(t => !isMine(t));
+  const first = legs[0] || {};
+  openSheet(`<h2>Как ты добираешься до ${esc(s.city)}?</h2>
+    ${legs.length ? `<div class="muted" style="margin-bottom:8px">Если летишь тем же рейсом, просто отметься:</div><div class="sec">${legs.map(t => `<div class="join"><div class="ic" style="font-size:20px">${(TYPES[t.type] || TYPES.other)[0]}</div>
+      <div class="grow"><b>${esc(t.number || '')}</b> ${esc(cityOfPt(t.from))} → ${esc(cityOfPt(t.to))}<div class="muted">${fmtDW(t.depart)} ${fmtT(t.depart)} · ${esc((t.who || []).join(', '))}</div></div>
+      <button class="chip on" data-join="${t.id}">🙋 Я тоже</button></div>`).join('')}</div>` : ''}
+    ${likeButtons() ? `<div class="muted" style="margin:12px 0 8px">Или сразу все билеты, как у другого человека:</div><div class="chips">${likeButtons()}</div>` : ''}
+    <div class="actions" style="flex-direction:column">
+      <button class="btn pri" data-addleg="${esc(cityOfPt(first.from) || '')}|${esc(s.city)}|${esc((first.depart || s.from || '').slice(0, 10))}">📎 У меня другой билет: загрузить скрин</button>
+    </div>`);
+}
+
 function openMe(first) {
   const m = data.meta || {};
   openSheet(`<h2>${first ? 'Привет! Кто ты?' : 'Профиль'}</h2>
     <div class="muted" style="margin-bottom:12px">Покажу только твои билеты и брони, а заметки подпишу твоим именем.</div>
     <div class="people">${people().map(p => `<button class="person ${me === p ? 'on' : ''}" data-me="${esc(p)}">${av(p)}${esc(p)}</button>`).join('')}</div>
+    <div class="h2">Участники</div>
+    <div class="sec">${people().map(p => `<div class="prow">${av(p)}<div class="grow">${esc(p)}${p === me ? ' <span class="muted">(это ты)</span>' : ''}</div><button class="x" data-rmp="${esc(p)}" title="Убрать">×</button></div>`).join('')}
+      <form class="prow" data-addp><span class="av" style="--c:var(--hint)">＋</span><input name="p" placeholder="Добавить участника" autocomplete="off" style="background:none;border:0;padding:6px 0"><button class="chip link">Добавить</button></form></div>
     ${first ? '' : `<div class="h2">Поездка</div>
     <div class="sec"><div class="ev" data-meta><div class="ic">✈️</div><div class="grow">${esc(m.title || 'Поездка')}<div class="muted">${fmtD(m.start)} → ${fmtD(m.end)} · ${esc(people().join(', '))}</div></div>✎</div></div>
     <div class="h2">Данные</div>
@@ -839,6 +988,13 @@ document.addEventListener('click', e => {
   const dn = T.closest('[data-done]'); if (dn) { e.stopPropagation(); const p = data.places[dn.dataset.done]; put('places', dn.dataset.done, { ...p, done: p.done ? undefined : true }); haptic(); return; }
   const td = T.closest('[data-todo]'); if (td) { const x = data.todo[td.dataset.todo]; put('todo', td.dataset.todo, { ...x, done: x.done ? undefined : true }); haptic(); return; }
   const dt = T.closest('[data-deltodo]'); if (dt) { del('todo', dt.dataset.deltodo); return; }
+  const fl = T.closest('[data-file]'); if (fl) { e.preventDefault(); e.stopPropagation(); openFile(fl.dataset.file); return; }
+  const jn = T.closest('[data-join]'); if (jn) { e.stopPropagation(); if (!me) return openMe(true); const t = data.transport[jn.dataset.join]; if (!t) return;
+    const who = [...new Set([...(t.who || []), me])]; put('transport', jn.dataset.join, { ...t, who }); haptic('medium'); openMyTicket(jn.dataset.join, true); return; }
+  const mt = T.closest('[data-myticket]'); if (mt) { e.stopPropagation(); openMyTicket(mt.dataset.myticket); return; }
+  const lk = T.closest('[data-like]'); if (lk) { e.stopPropagation(); if (!me) return openMe(true); const p = lk.dataset.like; confirmBox(`Отметить тебя на всех билетах, которые есть у ${p}?`, ok => ok && joinLike(p)); return; }
+  const js = T.closest('[data-joinstop]'); if (js) { if (!me) return openMe(true); openJoin(js.dataset.joinstop); return; }
+  const rp = T.closest('[data-rmp]'); if (rp) { const p = rp.dataset.rmp; confirmBox(`Убрать ${p} из участников? Его билеты и заметки останутся.`, ok => { if (!ok) return; putMeta({ ...data.meta, people: people().filter(x => x !== p) }); if (me === p) { me = ''; ls.set('trip-me', ''); } setTimeout(() => openMe(false), 300); }); return; }
   const ao = T.closest('[data-addopt]'); if (ao) { e.stopPropagation(); openForm('options', null, { parent: ao.dataset.addopt }); return; }
   const eo = T.closest('[data-editopt]'); if (eo) { e.stopPropagation(); openForm('options', eo.dataset.editopt); return; }
   const pk = T.closest('[data-pick]'); if (pk) {
@@ -879,6 +1035,8 @@ document.addEventListener('submit', e => {
     f.elements.text.value = ''; haptic('medium'); toast('Опубликовано');
     if (cityOpen) { const id = cityOpen; setTimeout(() => openCity(id), 200); }
   }
+  if (f.matches('[data-addp]')) { e.preventDefault(); const p = f.elements.p.value.trim(); if (!p) return; if (people().includes(p)) return toast('Уже есть');
+    putMeta({ ...data.meta, people: [...people(), p] }); toast(`${p} добавлен(а)`); setTimeout(() => openMe(!me), 300); return; }
   if (f.matches('[data-todoform]')) { e.preventDefault(); const v = f.elements.text.value.trim(); if (v) { put('todo', uid(), { text: v, createdAt: Date.now() }); f.elements.text.value = ''; } }
 });
 document.addEventListener('change', e => {
