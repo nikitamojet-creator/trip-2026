@@ -176,6 +176,13 @@ label.f{display:block;margin-bottom:11px;font-size:13px;color:var(--hint)}
 label.f > span{display:block;margin-bottom:4px;font-weight:500}
 input,select,textarea{min-width:0;max-width:100%;width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg2);border:1.5px solid transparent;border-radius:12px;padding:10px 12px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--btn)}
+input:not([type=checkbox]):not([type=radio]):not([type=file]),select{height:46px;line-height:1.25;-webkit-appearance:none;appearance:none;border-radius:12px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238e8c99' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-size:12px 8px;padding-right:34px;text-overflow:ellipsis}
+select:invalid,select option[value=""]{color:var(--hint)}
+.composer select{height:40px;font-size:14px}
+.sheet .composer{background:var(--bg2);box-shadow:none}
+.sheet .composer select{background-color:var(--card)}
+textarea{line-height:1.4}
 textarea{min-height:76px;resize:vertical}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
 input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-height:46px;text-align:left;display:block}
@@ -586,7 +593,7 @@ function openCity(id) {
   h += `<div class="h2" style="margin-top:0">Как добираемся</div><div class="sec">${legs.length ? legs.map(t => `<div class="ev" data-edit="transport:${t.id}"><div class="ic">${(TYPES[t.type] || TYPES.other)[0]}</div><div class="grow"><b>${esc(t.number || '')}</b> ${esc(cityOfPt(t.from))} → ${esc(cityOfPt(t.to))}<div class="muted">${fmtDW(t.depart)} ${fmtT(t.depart)}${t.confirmation ? ' · ' + esc(t.confirmation) : ''}</div></div>${avs(t.who, 3)}</div>`).join('') : `<div class="ev" data-addleg="|${esc(s.city)}|${esc(s.from || '')}"><div class="ic">❔</div><div class="grow muted">Билетов нет. Добавить</div></div>`}</div>`;
   h += `<div class="h2">Жильё <button data-add="stays" data-city-preset="${esc(s.city)}">＋ добавить</button></div>${stays.map(stayCard).join('') || '<div class="muted" style="padding:0 4px">Пока не указано</div>'}`;
   h += `<div class="h2">Места <button data-add="places" data-city-preset="${esc(s.city)}">＋ добавить</button></div><div class="sec">${places.map(p => `<div class="ev" data-edit="places:${p.id}"><div class="ic">${(CATS[p.cat] || CATS.other)[0]}</div><div class="grow">${esc(p.name)}${p.day ? `<div class="muted">${fmtDW(p.day)} ${esc(p.time || '')}</div>` : ''}</div></div>`).join('') || `<div class="ev muted" data-add="places" data-city-preset="${esc(s.city)}">Что хочется посмотреть? Добавить</div>`}</div>`;
-  h += `<div class="h2">Заметки и ссылки</div>${composerHtml(s.city)}${notes.map(noteCard).join('')}`;
+  h += `<div class="h2">Советы и ссылки про ${esc(s.city)}</div><div class="muted" style="margin:-4px 4px 8px">Общая стена компании: всё полезное про этот город</div>${composerHtml(s.city)}${notes.map(noteCard).join('')}`;
   h += `<div class="actions"><button class="btn" data-edit="stops:${id}">✎ Изменить город</button></div>`;
   openSheet(h);
 }
@@ -743,11 +750,15 @@ function renderMap() {
 
 /* --- заметки --- */
 function composerHtml(city) {
-  const sel = city ?? noteCity;
+  // city задан → мы внутри города: город не выбираем, он и так понятен
+  const inCity = city !== undefined;
+  const ph = inCity ? `Совет или ссылка про ${city}…` : 'Совет, ссылка, контакт, курс валют…';
   return `<form class="composer" data-composer>
-    <textarea name="text" placeholder="Заметка, лайфхак или ссылка…" rows="2"></textarea>
-    <div class="row">${me ? av(me) : ''}<select name="city">${cityOpts().map(([v, l]) => `<option value="${esc(v)}" ${v === sel ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>
-    <button class="btn pri" style="flex:0 0 auto;padding:9px 16px">Отправить</button></div></form>`;
+    <textarea name="text" placeholder="${esc(ph)}" rows="2"></textarea>
+    <div class="row">${me ? av(me) : ''}
+      ${inCity ? `<input type="hidden" name="city" value="${esc(city)}"><span class="grow muted">увидят все</span>`
+        : `<select name="city" title="К чему относится">${cityOpts().map(([v, l]) => `<option value="${esc(v)}" ${v === noteCity ? 'selected' : ''}>${esc(v ? '📍 ' + l : '🌏 Для всей поездки')}</option>`).join('')}</select>`}
+      <button class="btn pri" style="flex:0 0 auto;padding:9px 16px">Отправить</button></div></form>`;
 }
 function noteCard(n) {
   const url = n.url || (n.text || '').match(/https?:\/\/[^\s]+/)?.[0];
@@ -762,7 +773,7 @@ function noteCard(n) {
 function renderNotes() {
   const notes = list('notes').filter(n => !noteCity || n.city === noteCity).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   const todos = list('todo').sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.createdAt || 0) - (b.createdAt || 0));
-  let h = `<div class="seg"><button data-nseg="notes" class="${notesSeg === 'notes' ? 'on' : ''}">💬 Заметки и ссылки</button><button data-nseg="todo" class="${notesSeg === 'todo' ? 'on' : ''}">✓ Дела · ${todos.filter(x => !x.done).length}</button></div>`;
+  let h = `<div class="seg"><button data-nseg="notes" class="${notesSeg === 'notes' ? 'on' : ''}">💬 Советы и ссылки</button><button data-nseg="todo" class="${notesSeg === 'todo' ? 'on' : ''}">✓ Дела · ${todos.filter(x => !x.done).length}</button></div>`;
   if (notesSeg === 'notes') {
     h += `<div class="hscroll"><button class="chip ${!noteCity ? 'on' : ''}" data-ncity="">Все</button>${stopsSorted().map(s => `<button class="chip ${noteCity === s.city ? 'on' : ''}" data-ncity="${esc(s.city)}">${esc(s.city)}</button>`).join('')}</div>`;
     h += composerHtml() + (notes.map(noteCard).join('') || `<div class="empty"><b>💬</b>Делитесь здесь полезным: ссылками, лайфхаками, контактами, курсом валют…</div>`);
@@ -820,7 +831,7 @@ function fieldHtml(f, it) {
     input = `<div class="pp">${ppl.map(p => `<label><input type="checkbox" name="who" value="${esc(p)}" ${(it.who || []).includes(p) ? 'checked' : ''}>${av(p)}${esc(p)}</label>`).join('')}</div>`;
   } else {
     const t = { date: 'date', datetime: 'datetime-local', url: 'url' }[type] || 'text';
-    input = `<input id="${id}" name="${name}" type="${t}" value="${esc(v)}" ${o.req ? 'required' : ''} placeholder="${esc(o.ph || (type === 'coords' ? '13.7563, 100.5018 или ссылка Google Maps' : ''))}" autocomplete="off">`;
+    input = `<input id="${id}" name="${name}" type="${t}" value="${esc(v)}" ${o.req ? 'required' : ''} placeholder="${esc(o.ph || (type === 'coords' ? 'Ссылка Google Maps или 13.75, 100.50' : ''))}" autocomplete="off">`;
     if (type === 'coords') input += `<div class="hint-s">Google Maps: долгий тап по точке → скопировать координаты, или «Поделиться» → ссылка. <a href="#" data-geo="${id}">📍 Я здесь</a></div>`;
   }
   return `<label class="f"><span>${esc(label)}${o.req ? ' *' : ''}</span>${input}</label>`;
