@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Азия 2026</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --fb-bg:#ffffff; --fb-bg2:#f2f2f7; --fb-text:#111114; --fb-hint:#8a8a8e; --fb-link:#2481cc; --fb-btn:#2481cc; --fb-btn-text:#fff;
+  --bg:var(--tg-theme-bg-color,var(--fb-bg));
+  --bg2:var(--tg-theme-secondary-bg-color,var(--fb-bg2));
+  --text:var(--tg-theme-text-color,var(--fb-text));
+  --hint:var(--tg-theme-hint-color,var(--fb-hint));
+  --link:var(--tg-theme-link-color,var(--fb-link));
+  --btn:var(--tg-theme-button-color,var(--fb-btn));
+  --btn-text:var(--tg-theme-button-text-color,var(--fb-btn-text));
+  --line:color-mix(in srgb,var(--hint) 25%,transparent);
+  --warn:#e8590c; --ok:#2f9e44;
+  --r:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--fb-bg:#18181b; --fb-bg2:#0f0f11; --fb-text:#f4f4f5; --fb-hint:#8d8d94; --fb-link:#6ab3f3; --fb-btn:#3b8fd9;}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg2);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+a{color:var(--link);text-decoration:none}
+button{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:20;background:var(--bg);padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:19px;display:flex;align-items:center;gap:8px}
+header .sub{color:var(--hint);font-size:13px;margin-top:2px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--hint);display:inline-block;flex:none}
+.dot.on{background:var(--ok)} .dot.off{background:var(--warn)}
+main{padding:12px 12px 110px;max-width:760px;margin:0 auto}
+.tab{display:none} .tab.active{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--bg);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:8px 0 7px;font-size:11px;color:var(--hint);display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
+nav button b{font-size:20px;font-weight:400;line-height:1.1}
+nav button.active{color:var(--btn)}
+.fab{position:fixed;right:16px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:31;width:54px;height:54px;border-radius:50%;border:0;background:var(--btn);color:var(--btn-text);font-size:30px;line-height:1;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+.banner{background:color-mix(in srgb,var(--warn) 14%,var(--bg));border-radius:var(--r);padding:10px 12px;margin-bottom:12px;font-size:13px}
+.card{background:var(--bg);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.card h3{margin:0 0 2px;font-size:16px}
+.muted{color:var(--hint);font-size:13px}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1;min-width:0}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border:0;border-radius:999px;padding:5px 10px;font-size:13px;color:var(--text);cursor:pointer;white-space:nowrap}
+.chip.link{color:var(--link)}
+.chip.sel{background:var(--btn);color:var(--btn-text)}
+.who{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.who span{font-size:12px;background:color-mix(in srgb,var(--btn) 14%,transparent);color:var(--btn);border-radius:6px;padding:1px 6px}
+.h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--hint);margin:18px 4px 8px;display:flex;justify-content:space-between;align-items:center}
+.h2 button{background:none;border:0;color:var(--link);font-size:13px;text-transform:none;letter-spacing:0;cursor:pointer}
+.hscroll{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll .chip:not(.sel){background:var(--bg)}
+.code{font-family:ui-monospace,Menlo,monospace;background:var(--bg2);border-radius:6px;padding:1px 6px}
+.tag{font-size:12px;border-radius:6px;padding:1px 6px;background:var(--bg2);color:var(--hint)}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)}
+/* timeline */
+.day{background:var(--bg);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.day.today{box-shadow:0 0 0 2px var(--btn)}
+.day.past{opacity:.6}
+.day-h{display:flex;align-items:baseline;gap:8px;padding:10px 14px 6px}
+.day-date{font-weight:600;font-size:16px}
+.day-date span{color:var(--hint);font-weight:400;font-size:13px}
+.day-city{flex:1;font-size:14px}
+.day-n{color:var(--hint);font-size:12px}
+.ev{display:flex;gap:10px;padding:7px 14px;border-top:1px solid var(--line);cursor:pointer;align-items:flex-start}
+.ev .ic{font-size:18px;width:22px;text-align:center;flex:none}
+.ev .t{color:var(--hint);font-size:13px;width:42px;flex:none;padding-top:1px;font-variant-numeric:tabular-nums}
+.ev .b{flex:1;min-width:0}
+.ev .b .muted{font-size:12px}
+.night{padding:7px 14px 9px;border-top:1px solid var(--line);font-size:13px;color:var(--hint)}
+.night.warn{color:var(--warn)}
+.empty{color:var(--hint);text-align:center;padding:30px 10px}
+#map{position:relative;z-index:0;height:calc(100vh - 150px);height:calc(100dvh - 150px);border-radius:var(--r);overflow:hidden}
+.pin{font-size:22px;line-height:1;text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.place{display:flex;gap:10px;align-items:flex-start}
+.place input[type=checkbox]{width:20px;height:20px;margin:2px 0 0;accent-color:var(--btn);flex:none}
+.place.done h3{text-decoration:line-through;color:var(--hint)}
+.todo{display:flex;gap:10px;align-items:center;background:var(--bg);padding:10px 14px;border-bottom:1px solid var(--line)}
+.todo:first-child{border-radius:var(--r) var(--r) 0 0}.todo:last-child{border-radius:0 0 var(--r) var(--r);border:0}
+.todo:only-child{border-radius:var(--r)}
+.todo input{width:20px;height:20px;accent-color:var(--btn);flex:none}
+.todo.done .grow{text-decoration:line-through;color:var(--hint)}
+.todo .x{background:none;border:0;color:var(--hint);font-size:18px;cursor:pointer}
+.quick{display:flex;gap:6px;margin-bottom:8px}
+.quick input{flex:1}
+.pre{white-space:pre-wrap;word-break:break-word;margin-top:4px}
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:51;background:var(--bg);border-radius:18px 18px 0 0;max-height:92vh;overflow-y:auto;padding:16px 16px calc(20px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .22s ease;max-width:760px;margin:0 auto}
+.sheet.open{transform:none}
+.sheet h2{margin:0 0 12px;font-size:18px}
+label.f{display:block;margin-bottom:10px;font-size:13px;color:var(--hint)}
+label.f > span{display:block;margin-bottom:3px}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--text);background:var(--bg2);border:1px solid transparent;border-radius:10px;padding:9px 11px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--btn)}
+textarea{min-height:70px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pp{display:flex;flex-wrap:wrap;gap:6px}
+.pp label{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border-radius:999px;padding:5px 10px;color:var(--text);font-size:14px;cursor:pointer}
+.pp input{width:auto;accent-color:var(--btn)}
+.actions{display:flex;gap:8px;margin-top:14px}
+.btn{flex:1;border:0;border-radius:12px;padding:12px;font-weight:600;cursor:pointer;background:var(--bg2)}
+.btn.pri{background:var(--btn);color:var(--btn-text)}
+.btn.del{color:#e03131;flex:0 0 auto;padding:12px 16px}
+.toast{position:fixed;left:50%;bottom:140px;transform:translateX(-50%);background:rgba(20,20,20,.88);color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.opts{margin-top:8px}
+.opt{display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--line);cursor:default}
+.hint-s{font-size:12px;color:var(--hint);margin-top:3px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span id="title">Поездка</span><span class="dot" id="sync" title="синхронизация"></span></h1>
+  <div class="sub" id="subtitle"></div>
+</header>
+
+<main>
+  <div id="banner"></div>
+  <section class="tab active" id="tab-route"></section>
+  <section class="tab" id="tab-stays"></section>
+  <section class="tab" id="tab-transport"></section>
+  <section class="tab" id="tab-places"></section>
+  <section class="tab" id="tab-map"><div id="map"></div></section>
+  <section class="tab" id="tab-more"></section>
+</main>
+
+<button class="fab" id="fab" aria-label="Добавить">+</button>
+
+<nav id="nav">
+  <button data-tab="route" class="active"><b>🗓</b>Маршрут</button>
+  <button data-tab="stays"><b>🏨</b>Жильё</button>
+  <button data-tab="transport"><b>🎫</b>Билеты</button>
+  <button data-tab="places"><b>📍</b>Места</button>
+  <button data-tab="map"><b>🗺</b>Карта</button>
+  <button data-tab="more"><b>☰</b>Ещё</button>
+</nav>
+
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const CFG = window.TRIP_CONFIG || {};
+const tg = window.Telegram?.WebApp;
+const inTG = !!(tg && tg.initData);
+let me = inTG ? (tg.initDataUnsafe?.user?.first_name || '') : '';
+try { if (!me) me = localStorage.getItem('trip-me') || ''; } catch {}
+if (inTG) { tg.ready(); tg.expand(); try { tg.disableVerticalSwipes?.(); } catch {} }
+
+/* ---------------- helpers ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const MON = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const WD = ['вс','пн','вт','ср','чт','пт','сб'];
+const toD = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayKey = () => key(new Date());
+const fmtD = s => { if (!s) return ''; const d = toD(s.slice(0,10)); return `${d.getDate()} ${MON[d.getMonth()]}`; };
+const fmtDW = s => { if (!s) return ''; const d = toD(s.slice(0,10)); return `${d.getDate()} ${MON[d.getMonth()]}, ${WD[d.getDay()]}`; };
+const fmtT = s => (s && s.length > 10) ? s.slice(11,16) : '';
+const fmtDT = s => s ? `${fmtD(s)}${fmtT(s) ? ' ' + fmtT(s) : ''}` : '';
+const daysBetween = (a, b) => Math.round((toD(b) - toD(a)) / 864e5);
+const addDays = (s, n) => { const d = toD(s); d.setDate(d.getDate() + n); return key(d); };
+const list = sec => Object.entries(data[sec] || {}).map(([id, v]) => ({ ...v, id }));
+const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); };
+const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a class="ext" href="$1" target="_blank" rel="noopener">$1</a>');
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1600); }
+function haptic(type = 'light') { try { tg?.HapticFeedback?.impactOccurred(type); } catch {} }
+
+function parseCoords(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  let m = s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
+          s.match(/[?&](?:q|query|ll|destination)=(-?\d+\.\d+)(?:,|%2C)\s*(-?\d+\.\d+)/) ||
+          s.match(/^(-?\d{1,2}\.\d+)\s*[,;\s]\s*(-?\d{1,3}\.\d+)$/);
+  if (!m) return null;
+  const lat = +m[1], lng = +m[2];
+  return (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) ? { lat, lng } : null;
+}
+function mapsUrl(it) {
+  if (it.lat != null && it.lng != null) return `https://www.google.com/maps/search/?api=1&query=${it.lat},${it.lng}`;
+  if (it.mapUrl) return it.mapUrl;
+  const q = it.address || (it.name && it.city ? `${it.name}, ${it.city}` : '');
+  return q ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}` : null;
+}
+
+/* ---------------- schemas ---------------- */
+const TYPES = { plane:['✈️','Самолёт'], train:['🚆','Поезд'], ferry:['⛴️','Паром'], bus:['🚌','Автобус'], transfer:['🚐','Трансфер'], other:['🚕','Другое'] };
+const CATS = { see:['🏛','Посмотреть'], food:['🍜','Еда'], beach:['🏖','Пляж'], active:['🤿','Активность'], shop:['🛍','Шоппинг'], night:['🍹','Вечер'], other:['📍','Другое'] };
+const STATUS = { booked:'✅ Забронировано', todo:'🔎 Нужно забронировать' };
+const PAID = { paid:'Оплачено', part:'Частично', onsite:'Оплата на месте', none:'Не оплачено' };
+const opts = o => Object.entries(o).map(([k, v]) => [k, Array.isArray(v) ? v.join(' ') : v]);
+
+const SCHEMA = {
+  stops: { title: 'Город / точка маршрута', fields: [
+    ['city','Город','text',{req:1, ph:'Бангкок'}], ['country','Страна','text',{ph:'Таиланд'}],
+    [['from','Приезд','date'],['to','Отъезд','date']],
+    ['coords','Координаты или ссылка на карту','coords'],
+    ['notes','Заметки','textarea'] ]},
+  stays: { title: 'Жильё', fields: [
+    ['status','Статус','select',{options:opts(STATUS)}],
+    ['name','Название','text',{req:1, ph:'Lub d Siam'}], ['city','Город','text'],
+    [['checkin','Заезд','date'],['checkout','Выезд','date']],
+    ['address','Адрес','text'], ['coords','Координаты или ссылка на карту','coords'],
+    ['link','Ссылка на бронь (Booking, Airbnb…)','url'], ['confirmation','Номер брони / PIN','text'],
+    [['price','Цена','text',{ph:'12 000 ₽'}],['paid','Оплата','select',{options:opts(PAID)}]],
+    ['phone','Телефон / контакт хоста','text'], ['who','Кто живёт','people'], ['notes','Заметки','textarea'] ]},
+  transport: { title: 'Билет', fields: [
+    ['status','Статус','select',{options:opts(STATUS)}],
+    ['type','Тип','select',{options:opts(TYPES)}],
+    [['from','Откуда','text',{req:1, ph:'Москва SVO'}],['to','Куда','text',{req:1, ph:'Бангкок BKK'}]],
+    [['depart','Отправление (местное)','datetime'],['arrive','Прибытие (местное)','datetime']],
+    [['number','Рейс / номер','text',{ph:'SU 270'}],['carrier','Перевозчик','text']],
+    ['confirmation','Код брони / PNR','text'], ['link','Ссылка на билет / бронь','url'],
+    [['price','Цена','text'],['seats','Места / багаж','text']],
+    ['who','Кто едет','people'], ['notes','Заметки (терминал, багаж, где встречаемся)','textarea'] ]},
+  places: { title: 'Место', fields: [
+    ['name','Название','text',{req:1}], [['city','Город','text'],['cat','Тип','select',{options:opts(CATS)}]],
+    [['day','День (если запланировано)','date'],['time','Время','text',{ph:'10:00'}]],
+    ['coords','Координаты или ссылка на карту','coords'], ['link','Ссылка (сайт, отзывы, билеты)','url'],
+    ['price','Цена / вход','text'], ['done','Уже были','checkbox'], ['notes','Заметки','textarea'] ]},
+  options: { title: 'Вариант / ссылка', fields: [
+    ['url','Ссылка (Booking, Airbnb, Aviasales, 12go…)','url',{req:1}],
+    [['price','Цена','text',{ph:'8 400 ฿ за всех'}],['by','Кто нашёл','text']],
+    ['note','Комментарий','textarea'] ]},
+  info: { title: 'Заметка', fields: [ ['title','Заголовок','text',{req:1, ph:'Визы / Страховка / SIM'}], ['text','Текст','textarea'] ]},
+};
+
+/* ---------------- data / storage ---------------- */
+const SECTIONS = ['stops','stays','transport','places','todo','info'];
+const CACHE = 'trip-cache-' + (CFG.tripId || 'local');
+let data = { meta: {} };
+let mode = 'local', online = false, fb = null;
+
+function defaultMeta() { return { title: 'Азия 2026', start: '2026-12-20', end: '', people: CFG.people || [] }; }
+function clean(o) { const r = {}; for (const [k, v] of Object.entries(o)) if (v !== undefined && v !== '' && v !== null && k !== 'id') r[k] = v; return r; }
+function saveCache() { try { localStorage.setItem(CACHE, JSON.stringify(data)); } catch {} }
+function loadCache() { try { return JSON.parse(localStorage.getItem(CACHE)); } catch { return null; } }
+
+async function put(sec, id, item) {
+  item = clean({ ...item, updatedAt: Date.now(), updatedBy: me || undefined });
+  if (mode === 'fb') return fb.set(fb.ref(fb.db, `${fb.root}/${sec}/${id}`), item).catch(e => toast('Ошибка сохранения: ' + e.code));
+  (data[sec] ||= {})[id] = item; saveCache(); render();
+}
+async function del(sec, id) {
+  if (mode === 'fb') return fb.remove(fb.ref(fb.db, `${fb.root}/${sec}/${id}`));
+  delete data[sec]?.[id]; saveCache(); render();
+}
+async function putMeta(meta) {
+  if (mode === 'fb') return fb.set(fb.ref(fb.db, `${fb.root}/meta`), clean(meta));
+  data.meta = meta; saveCache(); render();
+}
+async function replaceAll(d) {
+  if (mode === 'fb') return fb.set(fb.ref(fb.db, fb.root), d);
+  data = d; saveCache(); render();
+}
+
+async function initStore() {
+  const cached = loadCache();
+  if (cached) data = cached;
+  if (CFG.firebase) {
+    try {
+      const v = '10.12.2';
+      const [{ initializeApp }, dbm] = await Promise.all([
+        import(`https://www.gstatic.com/firebasejs/${v}/firebase-app.js`),
+        import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`)]);
+      const app = initializeApp(CFG.firebase);
+      const db = dbm.getDatabase(app);
+      fb = { db, ref: dbm.ref, set: dbm.set, remove: dbm.remove, root: `trips/${CFG.tripId}` };
+      mode = 'fb';
+      dbm.onValue(dbm.ref(db, '.info/connected'), s => { online = !!s.val(); renderHeader(); });
+      dbm.onValue(dbm.ref(db, fb.root), snap => {
+        data = snap.val() || {};
+        if (!data.meta) { replaceAll(seedData()); return; }
+        saveCache(); render();
+      }, err => toast('Нет доступа к базе: ' + err.code));
+    } catch (e) {
+      console.error(e); toast('Firebase не загрузился, показываю кэш');
+    }
+  } else if (!cached || cached.meta?.demo || (cached.meta?.seed || 0) < SEED_V) {
+    data = seedData();
+    saveCache();
+  }
+  if (!data.meta) data.meta = defaultMeta();
+  render();
+}
+
+const SEED_V = 2;
+function seedData() {
+  // Данные поездки хранятся в Firebase; здесь только пустой каркас для новой поездки.
+  return { meta: { title:'Поездка', start:'', end:'', people: CFG.people || [], seed: SEED_V } };
+}
+
+/* ---------------- options (варианты от всех) ---------------- */
+function optionsHtml(sec, it) {
+  const ops = list('options').filter(o => o.parent === `${sec}:${it.id}`).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+  let host = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return 'ссылка'; } };
+  return `<div class="opts">${ops.map(o => `<div class="opt" data-stop>
+      <div class="grow"><a class="ext" href="${esc(o.url)}" target="_blank" rel="noopener">🔗 ${esc(host(o.url))}</a>${o.price ? ` · <b>${esc(o.price)}</b>` : ''}
+      ${o.note ? `<div class="muted">${esc(o.note)}</div>` : ''}${o.by ? `<div class="muted">— ${esc(o.by)}</div>` : ''}</div>
+      <button class="chip" data-pick="${o.id}">✅ Берём</button><button class="chip" data-editopt="${o.id}">✎</button></div>`).join('')}
+    <button class="chip link" data-addopt="${sec}:${it.id}" style="margin-top:6px">＋ ${ops.length ? 'ещё вариант' : (it.status === 'todo' ? 'предложить вариант / ссылку' : 'добавить ссылку')}</button></div>`;
+}
+
+/* ---------------- rendering ---------------- */
+let tab = 'route', placeFilter = '', placeHideDone = false;
+
+function render() {
+  renderHeader();
+  const r = { route: renderRoute, stays: renderStays, transport: renderTransport, places: renderPlaces, map: renderMap, more: renderMore }[tab];
+  r && r();
+  $('#fab').style.display = (tab === 'map') ? 'none' : '';
+  const b = [];
+  if (mode === 'local') b.push('Локальный режим: данные видите только вы. Подключите Firebase в config.js.');
+  $('#banner').innerHTML = tab === 'map' ? '' : b.map(x => `<div class="banner">${x}</div>`).join('');
+}
+
+function tripRange() {
+  const m = data.meta || {};
+  const dates = [];
+  list('stops').forEach(s => dates.push(s.from, s.to));
+  list('transport').forEach(t => dates.push(t.depart?.slice(0,10), t.arrive?.slice(0,10)));
+  list('stays').forEach(s => dates.push(s.checkin, s.checkout));
+  list('places').forEach(p => dates.push(p.day));
+  const ds = dates.filter(Boolean).sort();
+  return { start: m.start || ds[0], end: m.end || ds[ds.length - 1] };
+}
+
+function renderHeader() {
+  const m = data.meta || {};
+  $('#title').textContent = m.title || 'Поездка';
+  document.title = m.title || 'Поездка';
+  const dot = $('#sync');
+  dot.className = 'dot ' + (mode === 'fb' ? (online ? 'on' : 'off') : '');
+  dot.title = mode === 'fb' ? (online ? 'Синхронизировано' : 'Нет связи — показываю сохранённое') : 'Локальный режим';
+  const { start, end } = tripRange();
+  let sub = start ? fmtD(start) + (end ? ' — ' + fmtD(end) : '') : '';
+  const t = todayKey();
+  if (start && t < start) { const n = daysBetween(t, start); sub += ` · до вылета ${n} ${plural(n,'день','дня','дней')}`; }
+  else if (start && end && t <= end) sub += ` · день ${daysBetween(start, t) + 1} из ${daysBetween(start, end) + 1}`;
+  if (m.people?.length) sub += ` · ${m.people.join(', ')}`;
+  $('#subtitle').textContent = sub;
+}
+
+const whoHtml = w => (w && w.length) ? `<div class="who">${w.map(p => `<span>${esc(p)}</span>`).join('')}</div>` : '';
+const extA = (url, label) => url ? `<a class="chip link ext" href="${esc(url)}" target="_blank" rel="noopener">${label}</a>` : '';
+const copyChip = (v, label) => v ? `<button class="chip" data-copy="${esc(v)}">${label} <span class="code">${esc(v)}</span></button>` : '';
+
+function renderRoute() {
+  const el = $('#tab-route');
+  const stops = list('stops').sort((a, b) => (a.from || '').localeCompare(b.from || ''));
+  let h = `<div class="h2">Города <button data-add="stops">+ город</button></div><div class="hscroll">`;
+  h += stops.length ? stops.map(s => `<button class="chip" data-edit="stops:${s.id}">${esc(s.city)}${s.from ? ` <span class="muted">${fmtD(s.from)}–${fmtD(s.to)}</span>` : ''}</button>`).join('') : `<span class="muted">Добавьте города маршрута</span>`;
+  h += `</div>`;
+
+  const { start, end } = tripRange();
+  if (!start) { el.innerHTML = h + `<div class="empty">Укажите даты поездки в «Ещё» → «Поездка» или добавьте билеты и жильё — они появятся здесь по дням.</div>`; return; }
+
+  const evs = {};
+  const add = (d, e) => { if (d) (evs[d] ||= []).push(e); };
+  list('transport').forEach(t => add(t.depart?.slice(0,10), { o:1, time: fmtT(t.depart), sec:'transport', it:t }));
+  list('stays').forEach(s => { add(s.checkout, { o:0, time:'', sec:'stays', it:s, kind:'out' }); add(s.checkin, { o:3, time:'', sec:'stays', it:s, kind:'in' }); });
+  list('places').forEach(p => add(p.day, { o:2, time: p.time || '', sec:'places', it:p }));
+
+  const stays = list('stays');
+  let first = start, last = end || start;
+  Object.keys(evs).forEach(k => { if (k < first) first = k; if (k > last) last = k; });
+  const t = todayKey();
+  h += `<div class="h2">По дням</div>`;
+  for (let d = first, i = 0; d <= last && i < 120; d = addDays(d, 1), i++) {
+    const stop = stops.filter(s => s.from && s.from <= d && (!s.to || d <= s.to)).pop();
+    const night = stays.find(s => s.checkin && s.checkout && s.checkin <= d && d < s.checkout);
+    const dn = daysBetween(start, d) + 1;
+    const list_ = (evs[d] || []).sort((a, b) => a.o - b.o || (a.time || '99').localeCompare(b.time || '99'));
+    h += `<div class="day ${d === t ? 'today' : ''} ${d < t ? 'past' : ''}" id="day-${d}">
+      <div class="day-h"><div class="day-date">${fmtD(d)} <span>${WD[toD(d).getDay()]}</span></div>
+      <div class="day-city">${stop ? esc(stop.city) : ''}</div><div class="day-n">${dn >= 1 ? 'день ' + dn : ''}</div></div>`;
+    for (const e of list_) h += evRow(e);
+    if (d < last) h += night ? (night.status === 'todo' ? `<div class="night warn" data-edit="stays:${night.id}">🔎 Ночуем: ${esc(night.city || night.name)}, жильё не забронировано</div>` : `<div class="night">🛏 Ночуем: ${esc(night.name)}</div>`) : (list_.some(e => e.sec === 'transport' && e.it.arrive && e.it.arrive.slice(0,10) > d) ? `<div class="night">🌙 Ночь в дороге</div>` : `<div class="night warn">⚠️ Жильё на эту ночь не указано</div>`);
+    h += `</div>`;
+  }
+  el.innerHTML = h;
+  if (!renderRoute._scrolled && t >= first && t <= last) { renderRoute._scrolled = 1; setTimeout(() => document.getElementById('day-' + t)?.scrollIntoView({ block:'start' }), 50); }
+}
+
+function evRow(e) {
+  const it = e.it;
+  let ic, title, sub = '';
+  if (e.sec === 'transport') {
+    ic = (TYPES[it.type] || TYPES.other)[0];
+    title = `${esc(it.from)} → ${esc(it.to)}`;
+    sub = [it.status === 'todo' ? '🔎 не куплено' : '', it.number, it.carrier, it.arrive ? 'прибытие ' + fmtDT(it.arrive) : ''].filter(Boolean).map(esc).join(' · ');
+  } else if (e.sec === 'stays') {
+    ic = e.kind === 'in' ? '🏨' : '🧳';
+    title = (e.kind === 'in' ? 'Заселение: ' : 'Выселение: ') + esc(it.name);
+    if (e.kind === 'in' && it.checkout) { const n = daysBetween(it.checkin, it.checkout); sub = `${n} ${plural(n,'ночь','ночи','ночей')}`; }
+  } else {
+    ic = (CATS[it.cat] || CATS.other)[0];
+    title = esc(it.name) + (it.done ? ' ✓' : '');
+    sub = esc(it.notes || '');
+  }
+  const map = mapsUrl(it);
+  return `<div class="ev" data-edit="${e.sec}:${it.id}"><div class="t">${esc(e.time)}</div><div class="ic">${ic}</div>
+    <div class="b"><div>${title}</div>${sub ? `<div class="muted">${sub}</div>` : ''}</div>
+    ${map && e.kind !== 'out' ? `<a class="chip link ext" href="${esc(map)}" target="_blank" rel="noopener">🗺</a>` : ''}</div>`;
+}
+
+function renderStays() {
+  const items = list('stays').sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
+  $('#tab-stays').innerHTML = items.length ? items.map(s => {
+    const n = s.checkin && s.checkout ? daysBetween(s.checkin, s.checkout) : 0;
+    const paid = s.status === 'todo' ? `<span class="tag warn">🔎 Не забронировано</span>` : (s.paid ? `<span class="tag ${s.paid === 'paid' ? 'ok' : 'warn'}">${PAID[s.paid]}</span>` : `<span class="tag ok">✅</span>`);
+    return `<div class="card" data-edit="stays:${s.id}">
+      <div class="row"><div class="grow"><h3>${esc(s.name)}</h3>
+      <div class="muted">${esc(s.city || '')}${s.checkin ? ` · ${fmtDW(s.checkin)} → ${fmtDW(s.checkout)}` : ''}${n ? ` · ${n} ${plural(n,'ночь','ночи','ночей')}` : ''}</div></div>${paid}</div>
+      ${s.address ? `<div class="muted" style="margin-top:4px">${esc(s.address)}</div>` : ''}
+      ${s.price ? `<div class="muted">💰 ${esc(s.price)}</div>` : ''}
+      ${s.notes ? `<div class="pre muted">${linkify(s.notes)}</div>` : ''}
+      ${whoHtml(s.who)}
+      <div class="btns">${extA(mapsUrl(s), '🗺 Карта')}${extA(s.link, '🔗 Бронь')}${copyChip(s.confirmation, '№')}${s.phone ? `<a class="chip link ext" href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">📞 ${esc(s.phone)}</a>` : ''}</div>
+      ${optionsHtml('stays', s)}
+    </div>`; }).join('') : `<div class="empty">Пока нет жилья. Нажмите «+», чтобы добавить.</div>`;
+}
+
+function renderTransport() {
+  const items = list('transport').sort((a, b) => (a.depart || '').localeCompare(b.depart || ''));
+  const t = todayKey();
+  $('#tab-transport').innerHTML = items.length ? items.map(x => {
+    const [ic, tn] = TYPES[x.type] || TYPES.other;
+    const past = x.arrive ? x.arrive.slice(0,10) < t : (x.depart && x.depart.slice(0,10) < t);
+    return `<div class="card" data-edit="transport:${x.id}" style="${past ? 'opacity:.55' : ''}">
+      <div class="row"><div style="font-size:24px">${ic}</div><div class="grow">
+        <h3>${esc(x.from)} → ${esc(x.to)}</h3>
+        <div class="muted">${[tn, x.number, x.carrier].filter(Boolean).map(esc).join(' · ')}</div></div></div>
+      <div style="margin-top:6px">🛫 ${esc(fmtDW(x.depart))} <b>${esc(fmtT(x.depart))}</b>${x.arrive ? ` &nbsp;→&nbsp; 🛬 ${x.arrive.slice(0,10) !== x.depart?.slice(0,10) ? esc(fmtD(x.arrive)) + ' ' : ''}<b>${esc(fmtT(x.arrive))}</b>` : ''}</div>
+      ${x.seats ? `<div class="muted">💺 ${esc(x.seats)}</div>` : ''}
+      ${x.price ? `<div class="muted">💰 ${esc(x.price)}</div>` : ''}
+      ${x.notes ? `<div class="pre muted">${linkify(x.notes)}</div>` : ''}
+      ${whoHtml(x.who)}
+      ${x.status === 'todo' ? '<div style="margin-top:6px"><span class="tag warn">🔎 Не куплено</span></div>' : ''}
+      <div class="btns">${copyChip(x.confirmation, 'PNR')}${extA(x.link, '🎫 Билет')}</div>
+      ${optionsHtml('transport', x)}
+    </div>`; }).join('') : `<div class="empty">Пока нет билетов. Нажмите «+», чтобы добавить самолёт, поезд или паром.</div>`;
+}
+
+function renderPlaces() {
+  const all = list('places');
+  const cities = [...new Set(all.map(p => p.city).filter(Boolean))];
+  let items = all.filter(p => (!placeFilter || p.city === placeFilter) && (!placeHideDone || !p.done));
+  items.sort((a, b) => (a.city || '').localeCompare(b.city || '') || (a.day || '9').localeCompare(b.day || '9') || (a.name || '').localeCompare(b.name || ''));
+  let h = `<div class="hscroll"><button class="chip ${!placeFilter ? 'sel' : ''}" data-pf="">Все</button>${cities.map(c => `<button class="chip ${placeFilter === c ? 'sel' : ''}" data-pf="${esc(c)}">${esc(c)}</button>`).join('')}
+    <button class="chip ${placeHideDone ? 'sel' : ''}" data-hidedone>Скрыть посещённые</button></div>`;
+  let cur = null;
+  for (const p of items) {
+    if (!placeFilter && p.city !== cur) { cur = p.city; h += `<div class="h2">${esc(cur || 'Без города')}</div>`; }
+    const [ic] = CATS[p.cat] || CATS.other;
+    h += `<div class="card place ${p.done ? 'done' : ''}" data-edit="places:${p.id}">
+      <input type="checkbox" data-done="${p.id}" ${p.done ? 'checked' : ''}>
+      <div class="grow"><h3>${ic} ${esc(p.name)}</h3>
+      <div class="muted">${[p.day ? fmtDW(p.day) + (p.time ? ' ' + p.time : '') : '', p.price].filter(Boolean).map(esc).join(' · ')}</div>
+      ${p.notes ? `<div class="pre muted">${linkify(p.notes)}</div>` : ''}
+      <div class="btns">${extA(mapsUrl(p), '🗺 Карта')}${extA(p.link, '🔗 Ссылка')}</div></div></div>`;
+  }
+  if (!items.length) h += `<div class="empty">Мест пока нет. Добавьте то, что хочется посмотреть, — можно без даты.</div>`;
+  $('#tab-places').innerHTML = h;
+}
+
+let map, layer;
+function renderMap() {
+  if (!window.L) { $('#map').innerHTML = '<div class="empty">Карта не загрузилась (нет интернета?)</div>'; return; }
+  if (!map) {
+    map = L.map('map', { zoomControl: true });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+    layer = L.layerGroup().addTo(map);
+  }
+  setTimeout(() => map.invalidateSize(), 50);
+  layer.clearLayers();
+  const pts = [];
+  const pin = (lat, lng, emoji, html, sec, id) => {
+    const m = L.marker([lat, lng], { icon: L.divIcon({ className: '', html: `<div class="pin">${emoji}</div>`, iconSize: [24, 24], iconAnchor: [12, 22] }) })
+      .bindPopup(`${html}<br><a class="ext" href="${mapsUrl({ lat, lng })}" target="_blank">Открыть в Google Maps</a> · <a href="#" data-edit="${sec}:${id}">Изменить</a>`);
+    layer.addLayer(m); pts.push([lat, lng]);
+  };
+  const stops = list('stops').filter(s => s.lat != null).sort((a, b) => (a.from || '').localeCompare(b.from || ''));
+  if (stops.length > 1) layer.addLayer(L.polyline(stops.map(s => [s.lat, s.lng]), { color: '#2481cc', weight: 3, dashArray: '6 6', opacity: .8 }));
+  stops.forEach(s => pin(s.lat, s.lng, '🔵', `<b>${esc(s.city)}</b><br>${fmtD(s.from)}–${fmtD(s.to)}`, 'stops', s.id));
+  list('stays').filter(s => s.lat != null).forEach(s => pin(s.lat, s.lng, '🏨', `<b>${esc(s.name)}</b><br>${fmtD(s.checkin)}–${fmtD(s.checkout)}`, 'stays', s.id));
+  list('places').filter(p => p.lat != null).forEach(p => pin(p.lat, p.lng, p.done ? '✅' : (CATS[p.cat] || CATS.other)[0], `<b>${esc(p.name)}</b>${p.day ? '<br>' + fmtDW(p.day) : ''}`, 'places', p.id));
+  if (pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 13 }); else map.setView([13.75, 100.5], 4);
+}
+
+function renderMore() {
+  const m = data.meta || {};
+  const todos = list('todo').sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.createdAt || 0) - (b.createdAt || 0));
+  const infos = list('info').sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+  $('#tab-more').innerHTML = `
+    <div class="h2">Что сделать до поездки</div>
+    <form class="quick" id="todoForm"><input id="todoInput" placeholder="Новая задача…" autocomplete="off"><button class="btn pri" style="flex:0 0 auto">+</button></form>
+    <div>${todos.map(x => `<div class="todo ${x.done ? 'done' : ''}"><input type="checkbox" data-todo="${x.id}" ${x.done ? 'checked' : ''}><div class="grow">${linkify(x.text)}${x.who?.length ? ` <span class="muted">— ${esc(x.who.join(', '))}</span>` : ''}</div><button class="x" data-deltodo="${x.id}">×</button></div>`).join('')}</div>
+    <div class="h2">Полезное <button data-add="info">+ заметка</button></div>
+    ${infos.length ? infos.map(x => `<div class="card" data-edit="info:${x.id}"><h3>${esc(x.title)}</h3><div class="pre">${linkify(x.text)}</div></div>`).join('') : '<div class="muted" style="padding:0 4px">Визы, страховка, eSIM, обмен денег, контакты…</div>'}
+    ${inTG ? '' : `<div class="h2">Кто я (подписывать мои правки)</div><div class="hscroll">${(m.people || []).map(p => `<button class="chip ${me === p ? 'sel' : ''}" data-me="${esc(p)}">${esc(p)}</button>`).join('')}</div>`}
+    <div class="h2">Поездка</div>
+    <div class="card" data-meta>
+      <h3>${esc(m.title || 'Поездка')}</h3>
+      <div class="muted">${m.start ? fmtDW(m.start) : '—'} → ${m.end ? fmtDW(m.end) : '—'}</div>
+      <div class="muted">Участники: ${esc((m.people || []).join(', ') || '—')}</div>
+      <div class="muted" style="margin-top:6px">Нажмите, чтобы изменить</div>
+    </div>
+    <div class="h2">Данные</div>
+    <div class="card" style="cursor:default">
+      <div class="muted">${mode === 'fb' ? `Firebase · ${online ? 'онлайн' : 'офлайн'} · поездка <span class="code">${esc(CFG.tripId)}</span>` : 'Локально в этом браузере'}</div>
+      <div class="btns"><button class="chip" id="exp">⬇️ Скачать копию (JSON)</button><button class="chip" id="expCopy">📋 Скопировать JSON</button><label class="chip">⬆️ Загрузить JSON<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="chip" id="wipe" style="color:#e03131">Очистить всё</button></div>
+    </div>`;
+}
+
+/* ---------------- forms ---------------- */
+function fieldHtml(f, it) {
+  const [name, label, type, o = {}] = f;
+  let v = it[name] ?? '';
+  if (type === 'coords') v = it.lat != null ? `${it.lat}, ${it.lng}` : (it.mapUrl || '');
+  const id = 'f_' + name;
+  let input;
+  if (type === 'textarea') input = `<textarea id="${id}" name="${name}">${esc(v)}</textarea>`;
+  else if (type === 'select') input = `<select id="${id}" name="${name}"><option value=""></option>${o.options.map(([k, l]) => `<option value="${k}" ${k === v ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  else if (type === 'checkbox') return `<label class="f" style="display:flex;gap:8px;align-items:center;color:var(--text)"><input type="checkbox" name="${name}" style="width:20px;height:20px;accent-color:var(--btn)" ${v ? 'checked' : ''}>${esc(label)}</label>`;
+  else if (type === 'people') {
+    const ppl = [...new Set([...(data.meta?.people || []), ...(it.who || [])])];
+    input = `<div class="pp">${ppl.map(p => `<label><input type="checkbox" name="who" value="${esc(p)}" ${(it.who || []).includes(p) ? 'checked' : ''}>${esc(p)}</label>`).join('')}
+      <label data-allpp style="color:var(--link)">все</label></div>`;
+  } else {
+    const t = { date: 'date', datetime: 'datetime-local', url: 'url', coords: 'text' }[type] || 'text';
+    input = `<input id="${id}" name="${name}" type="${t}" value="${esc(v)}" ${o.req ? 'required' : ''} placeholder="${esc(o.ph || (type === 'coords' ? '13.7563, 100.5018 или ссылка Google Maps' : ''))}" ${type === 'url' ? 'inputmode="url"' : ''} autocomplete="off">`;
+    if (type === 'coords') input += `<div class="hint-s">В Google Maps: долгий тап по точке → скопировать координаты, или «Поделиться» → ссылка. <a href="#" data-geo="${id}">📍 Я здесь</a></div>`;
+  }
+  return `<label class="f"><span>${esc(label)}${o.req ? ' *' : ''}</span>${input}</label>`;
+}
+
+let sheetCtx = null;
+function openSheet(html, onClose) {
+  $('#sheet').innerHTML = html;
+  $('#sheetBg').style.display = 'block';
+  requestAnimationFrame(() => $('#sheet').classList.add('open'));
+  sheetCtx = { onClose };
+  if (inTG) { tg.BackButton.show(); }
+}
+function closeSheet() {
+  $('#sheet').classList.remove('open');
+  $('#sheetBg').style.display = 'none';
+  sheetCtx = null;
+  if (inTG) tg.BackButton.hide();
+}
+if (inTG) tg.BackButton.onClick(closeSheet);
+$('#sheetBg').onclick = closeSheet;
+
+function openForm(sec, id, preset = {}) {
+  const sc = SCHEMA[sec];
+  const it = id ? { ...(data[sec]?.[id] || {}) } : { ...preset };
+  let body = '';
+  for (const f of sc.fields) body += Array.isArray(f[0]) ? `<div class="two">${f.map(x => fieldHtml(x, it)).join('')}</div>` : fieldHtml(f, it);
+  const meta = it.updatedAt ? `<div class="muted" style="margin-top:10px">Изменено ${new Date(it.updatedAt).toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}${it.updatedBy ? ' · ' + esc(it.updatedBy) : ''}</div>` : '';
+  openSheet(`<form id="itemForm"><h2>${id ? '' : 'Новое: '}${esc(sc.title)}</h2>${body}
+    <div class="actions">${id ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri">Сохранить</button></div>${meta}</form>`);
+  const form = $('#itemForm');
+  $('#cancelBtn').onclick = closeSheet;
+  if (id) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { del(sec, id); closeSheet(); toast('Удалено'); } });
+  form.onsubmit = e => {
+    e.preventDefault();
+    const out = { ...it };
+    for (const f of sc.fields.flatMap(f => Array.isArray(f[0]) ? f : [f])) {
+      const [name, , type] = f;
+      if (type === 'people') out.who = [...form.querySelectorAll('input[name=who]:checked')].map(x => x.value);
+      else if (type === 'checkbox') out[name] = form.elements[name].checked || undefined;
+      else if (type === 'coords') {
+        const raw = form.elements[name].value.trim(); const c = parseCoords(raw);
+        delete out.lat; delete out.lng; delete out.mapUrl;
+        if (c) { out.lat = c.lat; out.lng = c.lng; } else if (/^https?:\/\//.test(raw)) out.mapUrl = raw;
+        else if (raw) { toast('Не понял координаты'); return; }
+      }
+      else out[name] = form.elements[name].value.trim();
+    }
+    if (!id) out.createdAt = Date.now();
+    put(sec, id || uid(), out);
+    haptic('medium'); closeSheet(); toast('Сохранено');
+  };
+}
+
+function openMetaForm() {
+  const m = data.meta || {};
+  openSheet(`<form id="metaForm"><h2>Поездка</h2>
+    <label class="f"><span>Название</span><input name="title" value="${esc(m.title || '')}"></label>
+    <div class="two"><label class="f"><span>Начало</span><input type="date" name="start" value="${esc(m.start || '')}"></label>
+    <label class="f"><span>Конец</span><input type="date" name="end" value="${esc(m.end || '')}"></label></div>
+    <label class="f"><span>Участники (через запятую)</span><input name="people" value="${esc((m.people || []).join(', '))}"></label>
+    <div class="actions"><button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri">Сохранить</button></div></form>`);
+  $('#cancelBtn').onclick = closeSheet;
+  $('#metaForm').onsubmit = e => {
+    e.preventDefault(); const f = e.target.elements;
+    putMeta({ ...m, demo: undefined, title: f.title.value.trim(), start: f.start.value, end: f.end.value, people: f.people.value.split(',').map(s => s.trim()).filter(Boolean) });
+    closeSheet(); toast('Сохранено');
+  };
+}
+
+function confirmBox(msg, cb) { if (inTG && tg.showConfirm) { try { return tg.showConfirm(msg, cb); } catch {} } cb(confirm(msg)); }
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  const a = e.target.closest('a.ext');
+  if (a) {
+    e.stopPropagation();
+    if (inTG) { e.preventDefault(); const u = a.href; /^https:\/\/t\.me\//.test(u) ? tg.openTelegramLink(u) : tg.openLink(u); }
+    return;
+  }
+  if (e.target.closest('a[href^="tel:"]')) { e.stopPropagation(); return; }
+  const cp = e.target.closest('[data-copy]');
+  if (cp) { e.stopPropagation(); navigator.clipboard?.writeText(cp.dataset.copy).then(() => toast('Скопировано'), () => toast(cp.dataset.copy)); haptic(); return; }
+  const geo = e.target.closest('[data-geo]');
+  if (geo) { e.preventDefault(); navigator.geolocation?.getCurrentPosition(p => { $('#' + geo.dataset.geo).value = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`; }, () => toast('Не удалось получить геопозицию')); return; }
+  if (e.target.closest('[data-allpp]')) { const boxes = [...document.querySelectorAll('input[name=who]')]; const all = boxes.every(b => b.checked); boxes.forEach(b => b.checked = !all); return; }
+  if (e.target.matches('[data-done]')) { e.stopPropagation(); const p = data.places[e.target.dataset.done]; put('places', e.target.dataset.done, { ...p, done: e.target.checked || undefined }); haptic(); return; }
+  if (e.target.matches('[data-todo]')) { const id = e.target.dataset.todo; put('todo', id, { ...data.todo[id], done: e.target.checked || undefined }); haptic(); return; }
+  const dt = e.target.closest('[data-deltodo]'); if (dt) { del('todo', dt.dataset.deltodo); return; }
+  const ao = e.target.closest('[data-addopt]'); if (ao) { e.stopPropagation(); openForm('options', null, { parent: ao.dataset.addopt, by: me }); return; }
+  const eo = e.target.closest('[data-editopt]'); if (eo) { e.stopPropagation(); openForm('options', eo.dataset.editopt); return; }
+  const pk = e.target.closest('[data-pick]'); if (pk) { e.stopPropagation();
+    const o = data.options[pk.dataset.pick]; const [sec, pid] = o.parent.split(':'); const par = data[sec]?.[pid]; if (!par) return;
+    confirmBox('Этот вариант забронирован/куплен? Ссылка и цена перейдут в карточку.', ok => { if (!ok) return;
+      put(sec, pid, { ...par, link: o.url, price: o.price || par.price, status: 'booked' }); del('options', pk.dataset.pick); toast('Отмечено как забронированное'); });
+    return; }
+  if (e.target.closest('[data-stop]') && !e.target.closest('a,button')) { e.stopPropagation(); return; }
+  const mb = e.target.closest('[data-me]'); if (mb) { me = mb.dataset.me; try { localStorage.setItem('trip-me', me); } catch {} renderMore(); toast('Теперь правки подписаны: ' + me); return; }
+  const ed = e.target.closest('[data-edit]');
+  if (ed) { e.preventDefault(); const [sec, id] = ed.dataset.edit.split(':'); map?.closePopup(); openForm(sec, id); return; }
+  const ad = e.target.closest('[data-add]'); if (ad) { openForm(ad.dataset.add); return; }
+  if (e.target.closest('[data-meta]')) { openMetaForm(); return; }
+  const pf = e.target.closest('[data-pf]'); if (pf) { placeFilter = pf.dataset.pf; renderPlaces(); return; }
+  if (e.target.closest('[data-hidedone]')) { placeHideDone = !placeHideDone; renderPlaces(); return; }
+  if (e.target.id === 'exp') { const b = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const l = document.createElement('a'); l.href = u; l.download = `trip-${todayKey()}.json`; l.click(); return; }
+  if (e.target.id === 'expCopy') { navigator.clipboard?.writeText(JSON.stringify(data)).then(() => toast('JSON скопирован')); return; }
+  if (e.target.id === 'wipe') { confirmBox('Удалить ВСЕ данные поездки у всех? Сначала лучше скачать копию.', ok => { if (ok) { replaceAll({ meta: { ...defaultMeta() } }); toast('Очищено'); } }); return; }
+});
+document.addEventListener('submit', e => {
+  if (e.target.id === 'todoForm') { e.preventDefault(); const v = $('#todoInput').value.trim(); if (v) { put('todo', uid(), { text: v, createdAt: Date.now() }); $('#todoInput').value = ''; } }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'imp') {
+    const f = e.target.files[0]; if (!f) return;
+    f.text().then(t => { const d = JSON.parse(t); confirmBox('Заменить все данные содержимым файла?', ok => { if (ok) { replaceAll(d); toast('Загружено'); } }); }).catch(() => toast('Файл не похож на JSON'));
+  }
+});
+
+$('#nav').onclick = e => {
+  const b = e.target.closest('button[data-tab]'); if (!b) return;
+  tab = b.dataset.tab;
+  document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + tab));
+  window.scrollTo(0, 0); haptic('soft'); render();
+};
+$('#fab').onclick = () => {
+  const sec = { route: 'transport', stays: 'stays', transport: 'transport', places: 'places', more: 'info' }[tab] || 'places';
+  const preset = (sec === 'places' && placeFilter) ? { city: placeFilter } : {};
+  if (tab === 'route') {
+    openSheet(`<h2>Что добавить?</h2><div class="actions" style="flex-direction:column">
+      <button class="btn" data-add="transport">🎫 Билет (самолёт, поезд, паром)</button>
+      <button class="btn" data-add="stays">🏨 Жильё</button>
+      <button class="btn" data-add="places">📍 Место / план на день</button>
+      <button class="btn" data-add="stops">🔵 Город маршрута</button></div>`);
+    return;
+  }
+  openForm(sec, null, preset);
+};
+
+initStore();
+</script>
+</body>
+</html>
