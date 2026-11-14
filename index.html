@@ -72,6 +72,9 @@ nav button.active b{filter:none;opacity:1}
 .rsch .ar{color:var(--hint)}
 .rsch .sub{font-size:12px;color:var(--hint);margin-top:6px}
 .rsch .pp{margin:8px 0 0}
+.rsch .pk{border:0;font:inherit;font-weight:600;color:var(--text);cursor:pointer;outline:1.5px dashed color-mix(in srgb,var(--link) 55%,transparent);outline-offset:-1.5px}
+.rsch .pk::after{content:' ▾';color:var(--hint);font-size:11px}
+.rsch .pkl{margin-top:8px}.rsch .pkl .chips{margin-top:6px}.rsch .pkl .chip{background:var(--card)}
 .hscroll{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none;margin:0 -2px}
 .hscroll::-webkit-scrollbar{display:none}
 .chip{display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:0;border-radius:999px;padding:6px 11px;font-size:13px;color:var(--text);white-space:nowrap;font-weight:500}
@@ -799,7 +802,8 @@ function stopPlace(from, to, selfId, who) {
   if (!from) return {};
   const parent = to ? others.find(s => s.to && s.from < from && to < s.to) : null;
   if (parent) return { parent };
-  const prev = others.filter(s => s.from <= from).pop(), next = others.find(s => s.from > from);
+  const prev = others.filter(s => s.to === from).pop() || others.filter(s => s.from <= from).pop();
+  const next = others.find(s => s !== prev && (s.from > from || (s.from === from && s.to > from)));
   return { prev, next };
 }
 function stopScheme(form, id) {
@@ -807,6 +811,7 @@ function stopScheme(form, id) {
   if (!from) { box.innerHTML = '<div class="sub">Укажи даты, и я покажу, куда город встанет в маршруте</div>'; return; }
   if (to && to < from) { box.innerHTML = '<div class="sub" style="color:var(--red)">Отъезд раньше приезда</div>'; return; }
   const nd = (t, me) => `<span class="nd${me ? ' me' : ''}">${esc(t)}</span>`, ar = '<span class="ar">→</span>';
+  const pk = (t, k) => `<button type="button" class="nd pk" data-pk="${k}">${esc(t)}</button>`;
   const who = [...form.querySelectorAll('input[name=who]:checked')].map(x => x.value);
   const { parent, prev, next } = stopPlace(from, to, id, who);
   const me0 = { from, to: to || from, who };
@@ -816,7 +821,7 @@ function stopScheme(form, id) {
   const was = box.querySelector('input[name=ret]:checked')?.value || 'back';
   if (parent) {
     const P = esc(parent.city);
-    box.innerHTML = `<div class="ln3">${nd(parent.city)}${ar}${nd(city, 1)}${ar}${nd(was === 'back' ? parent.city : (stopsSorted().find(s => s.from > parent.to)?.city || 'Домой'))}</div>
+    box.innerHTML = `<div class="ln3">${pk(parent.city, 'from')}${ar}${nd(city, 1)}${ar}${nd(was === 'back' ? parent.city : (stopsSorted().find(s => s.from > parent.to)?.city || 'Домой'))}</div>
       <div class="sub">Даты внутри «${P}» (${fmtD(parent.from)} – ${fmtD(parent.to)}). Это вылазка?</div>
       <div class="pp"><label><input type="radio" name="ret" value="back" ${was === 'back' ? 'checked' : ''}>↩ Вернёмся в ${P} ${fmtD(to)}</label><label><input type="radio" name="ret" value="end" ${was === 'end' ? 'checked' : ''}>${P} заканчивается ${fmtD(from)}</label></div>
       <div class="sub">${was === 'back' ? `${P} разделится на два блока: ${fmtD(parent.from)} – ${fmtD(from)} и ${fmtD(to)} – ${fmtD(parent.to)}` : `${P} будет до ${fmtD(from)}, дальше ${esc(city)} до ${fmtD(parent.to)}`}</div>`;
@@ -826,7 +831,26 @@ function stopScheme(form, id) {
   const a = prev ? prev.city : 'Старт', b = next ? next.city : 'Домой';
   const warn = prev?.to && prev.to > from ? `<div class="sub">${esc(prev.city)} сейчас до ${fmtD(prev.to)}, сдвину на ${fmtD(from)}</div>` : '';
   const warn2 = next && to && to > next.from ? `<div class="sub" style="color:var(--red)">Пересекается с «${esc(next.city)}» (с ${fmtD(next.from)}). Поправь даты</div>` : '';
-  box.innerHTML = `<div class="ln3">${nd(a)}${ar}${nd(city, 1)}${ar}${nd(b)}</div>${warn}${warn2}${parNote}`;
+  box.innerHTML = `<div class="ln3">${pk(a, 'from')}${ar}${nd(city, 1)}${ar}${pk(b, 'to')}</div>${warn}${warn2}${parNote}<div class="sub">Нажми на город слева или справа, чтобы выбрать из маршрута</div>`;
+}
+// Клик по тегу «откуда» / «куда дальше» в схеме: выбор города, даты подставляются сами
+function schemePick(e, form, id) {
+  const b = e.target.closest('[data-pk],[data-pkv]'); if (!b) return; e.preventDefault();
+  const box = $('#rsch'), F = form.elements.from, T = form.elements.to;
+  if (b.dataset.pk) {
+    const k = b.dataset.pk, cur = box.querySelector('.pkl');
+    if (cur) { cur.remove(); if (cur.dataset.k === k) return; }
+    const st = stopsSorted().filter(s => s.id !== id && s.from);
+    const opts = k === 'from' ? st.filter(s => s.to).map(s => [s.id, `${s.city} · до ${fmtD(s.to)}`])
+      : st.filter(s => !F.value || s.from > F.value).map(s => [s.id, `${s.city} · с ${fmtD(s.from)}`]);
+    box.insertAdjacentHTML('beforeend', `<div class="pkl" data-k="${k}"><div class="sub">${k === 'from' ? 'Откуда едем (приезд встанет на день отъезда оттуда):' : 'Куда дальше (отъезд встанет на день приезда туда):'}</div>
+      <div class="chips">${opts.map(([v, l]) => `<button type="button" class="chip" data-pkv="${k}|${v}">${esc(l)}</button>`).join('') || '<span class="muted">После этих дат городов нет, значит дальше домой</span>'}</div></div>`);
+    return;
+  }
+  const [k, v] = b.dataset.pkv.split('|'), s = data.stops[v]; if (!s) return;
+  if (k === 'from') { F.value = s.to; T.value = addDays(F.value, 2); }
+  else { T.value = s.from; if (!F.value || F.value >= T.value) F.value = addDays(T.value, -2); }
+  haptic('light'); stopScheme(form, id);
 }
 function applyExcursion(out, id, ret) {
   if (out.to && out.from && out.to < out.from) { toast('Отъезд раньше приезда'); return false; }
@@ -1226,7 +1250,7 @@ function openForm(sec, id, preset = {}) {
     <div class="actions">${id ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri" id="saveBtn">Сохранить</button></div>${meta}</form>`);
   const form = $('#itemForm');
   $('#cancelBtn').onclick = closeSheet;
-  if (sec === 'stops') { const two = form.querySelector('input[name=from]').closest('.two'); two.insertAdjacentHTML('afterend', '<div class="rsch" id="rsch"></div>'); const upd = () => stopScheme(form, id); form.addEventListener('input', e => { if (e.target.name !== 'ret') upd(); }); form.addEventListener('change', e => { if (e.target.name === 'who') upd(); }); upd(); }
+  if (sec === 'stops') { const two = form.querySelector('input[name=from]').closest('.two'); two.insertAdjacentHTML('afterend', '<div class="rsch" id="rsch"></div>'); const upd = () => stopScheme(form, id); form.addEventListener('input', e => { if (e.target.name !== 'ret') upd(); }); form.addEventListener('change', e => { if (e.target.name === 'who') upd(); }); $('#rsch').addEventListener('click', e => schemePick(e, form, id)); upd(); }
   form.addEventListener('change', e => { if (e.target.type === 'file') { const n = e.target.files.length; form.querySelector('[data-fpick]').textContent = n ? `Выбрано файлов: ${n}. Нажмите «Сохранить»` : ''; const st = form.querySelector('input[name=status][value=booked]'); if (n && st) st.checked = true; } });
   if (id) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { Object.keys(it.files || {}).forEach(removeFile); del(sec, id); closeSheet(); toast('Удалено'); } });
   form.onsubmit = async e => {
