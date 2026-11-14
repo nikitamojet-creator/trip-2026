@@ -658,13 +658,11 @@ function renderSummary() {
   const noStay = sRows.filter(r => !(r.stay && r.stay.status !== 'todo')).reduce((a, r) => a + stayNights(r), 0);
   let h = `<div class="sumhead" style="justify-content:flex-end"><span>билеты <b>${tOk}/${tRows.length}</b> · жильё <b>${sOk}/${sRows.length}</b>${noStay ? ` · без жилья <b style="color:var(--warn)">${nights(noStay)}</b>` : ''}</span></div>
     <div class="card" style="padding:8px 8px 4px"><div class="shd"><span>дата</span><span>маршрут</span><span>билет</span><span>жильё</span></div>`;
-  let pplKey = people().join();
   sumRows.forEach((r, i) => {
     const n = stayNights(r), open = openRow === i;
-    const label = (r.kind === 'extra' ? `↳ ${esc(r.stay?.name || r.to)}` : `${esc(r.from)} → ${esc(r.to)}`) + (someoneOut(r) && r.kind !== 'extra' && (r.kind === 'home' || pplKey !== r.ppl.join()) ? ` <span class="spp">${r.ppl.map(av).join('')}</span>` : '');
-    if (r.kind === 'move') pplKey = r.ppl.join();
+    const label = (r.kind === 'extra' ? `↳ ${esc(r.stay?.name || r.to)}` : `${esc(r.from)} → ${esc(r.to)}`) + (r.kind === 'home' && someoneOut(r) ? ` <span class="spp">${r.ppl.map(av).join('')}</span>` : '');
     h += `<div class="srow ${r.kind === 'extra' ? 'sub' : ''} ${r.kind === 'home' && someoneOut(r) ? 'home' : ''} ${open ? 'open' : ''}" data-row="${i}"><span class="sd">${dm(r.date)}</span><span class="sn">${label}</span>
-      <span>${r.kind === 'extra' ? '' : (() => { const st = tState(r); return `<button class="tgb ${st}" data-tt="${i}" aria-label="Билет">${st === 'part' ? `${covT(r)}/${rPpl(r).length}` : (r.legs.length ? (TYPES[r.legs[0].type] || TYPES.plane)[0] : '🎫')}</button>`; })()}</span>
+      <span>${r.kind === 'extra' ? '' : (() => { const st = tState(r); return `<button class="tgb ${st}" data-tt="${i}" aria-label="Билет">${st === 'part' ? `${covT(r)}/${rPpl(r).length}` : '🎫'}</button>`; })()}</span>
       <span>${r.kind === 'home' ? '' : `<button class="tgb ${sState(r)}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>`}</span></div>`;
     if (open) h += rowDetail(r, i);
   });
