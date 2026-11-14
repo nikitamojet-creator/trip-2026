@@ -65,6 +65,13 @@ nav button.active b{filter:none;opacity:1}
 .h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--hint);margin:20px 4px 8px;display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .h2 button{background:none;border:0;color:var(--link);font-size:13px;text-transform:none;letter-spacing:0;font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
+.rsch{background:var(--soft);border-radius:14px;padding:10px 12px;margin:0 0 12px}
+.rsch .ln3{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:600;font-size:14px}
+.rsch .nd{background:var(--card);border-radius:999px;padding:4px 10px;box-shadow:var(--shadow)}
+.rsch .nd.me{background:var(--link);color:#fff}
+.rsch .ar{color:var(--hint)}
+.rsch .sub{font-size:12px;color:var(--hint);margin-top:6px}
+.rsch .pp{margin:8px 0 0}
 .hscroll{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none;margin:0 -2px}
 .hscroll::-webkit-scrollbar{display:none}
 .chip{display:inline-flex;align-items:center;gap:5px;background:var(--soft);border:0;border-radius:999px;padding:6px 11px;font-size:13px;color:var(--text);white-space:nowrap;font-weight:500}
@@ -495,6 +502,8 @@ const stopsSorted = () => list('stops').sort((a, b) => (a.from || '').localeComp
 const cityColor = city => { const i = stopsSorted().findIndex(s => s.city === city); return CCOL[(i < 0 ? 0 : i) % CCOL.length]; };
 const flagOf = s => FLAGS[s?.country] || '';
 const shortPt = s => { if (!s) return ''; const m = s.match(/\(([A-Z]{3})\)/); return m ? m[1] : s.split(',')[0].trim(); };
+// Жильё относится к остановке по городу; если город в маршруте дважды (Бали → Гили → Бали), то ещё и по датам
+const stayInStop = (x, s) => x.city === s.city && (list('stops').filter(o => o.city === s.city).length < 2 || !x.checkin || !s.from || ((!s.to || x.checkin < s.to) && (!x.checkout || x.checkout > s.from)));
 const cityOfPt = s => (s || '').split(',')[0].trim();
 function tripRange() {
   const m = data.meta || {}; const ds = [];
@@ -591,7 +600,7 @@ function summaryRows() {
     const thru = s.from ? all.filter(t => !own.includes(t) && t.depart && t.arrive && t.depart.slice(0, 10) <= s.from && t.arrive.slice(0, 10) > s.from) : [];
     const legs = [...own, ...thru];
     const prev = i ? stops[i - 1].city : (cityOfPt(legs[0]?.from) || 'Старт');
-    const cs = stays.filter(x => x.city === s.city).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
+    const cs = stays.filter(x => stayInStop(x, s)).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
     rows.push({ kind: 'move', stop: s, from: prev, to: s.city, date: (relevant(own)[0]?.depart || s.from || '').slice(0, 10), legs, own, stay: cs[0] || null });
     cs.slice(1).forEach(st => rows.push({ kind: 'extra', stop: s, from: '', to: s.city, date: st.checkin, legs: [], stay: st }));
   });
@@ -694,6 +703,55 @@ function toggleTicket(r) {
   else put('transport', uid(), { type: 'plane', from: r.from, to: r.kind === 'home' ? 'Домой' : r.to, depart: r.date, status: 'booked', who: mine ? [me] : [], createdAt: Date.now() });
   haptic('medium'); toast(mine ? 'Отмечено: билет у тебя есть' : 'Отмечено: билет есть у всех');
 }
+// Где новый город встаёт в маршрут: соседи по датам или «вылазка» внутри другого города
+function stopPlace(from, to, selfId) {
+  const others = stopsSorted().filter(s => s.id !== selfId && s.from);
+  if (!from) return {};
+  const parent = to ? others.find(s => s.to && s.from < from && to < s.to) : null;
+  if (parent) return { parent };
+  const prev = others.filter(s => s.from <= from).pop(), next = others.find(s => s.from > from);
+  return { prev, next };
+}
+function stopScheme(form, id) {
+  const box = $('#rsch'), city = form.elements.city.value.trim() || 'Новый город', from = form.elements.from.value, to = form.elements.to.value;
+  if (!from) { box.innerHTML = '<div class="sub">Укажи даты, и я покажу, куда город встанет в маршруте</div>'; return; }
+  if (to && to < from) { box.innerHTML = '<div class="sub" style="color:var(--red)">Отъезд раньше приезда</div>'; return; }
+  const nd = (t, me) => `<span class="nd${me ? ' me' : ''}">${esc(t)}</span>`, ar = '<span class="ar">→</span>';
+  const { parent, prev, next } = stopPlace(from, to, id);
+  const was = box.querySelector('input[name=ret]:checked')?.value || 'back';
+  if (parent) {
+    const P = esc(parent.city);
+    box.innerHTML = `<div class="ln3">${nd(parent.city)}${ar}${nd(city, 1)}${ar}${nd(was === 'back' ? parent.city : (stopsSorted().find(s => s.from > parent.to)?.city || 'Домой'))}</div>
+      <div class="sub">Даты внутри «${P}» (${fmtD(parent.from)} – ${fmtD(parent.to)}). Это вылазка?</div>
+      <div class="pp"><label><input type="radio" name="ret" value="back" ${was === 'back' ? 'checked' : ''}>↩ Вернёмся в ${P} ${fmtD(to)}</label><label><input type="radio" name="ret" value="end" ${was === 'end' ? 'checked' : ''}>${P} заканчивается ${fmtD(from)}</label></div>
+      <div class="sub">${was === 'back' ? `${P} разделится на два блока: ${fmtD(parent.from)} – ${fmtD(from)} и ${fmtD(to)} – ${fmtD(parent.to)}` : `${P} будет до ${fmtD(from)}, дальше ${esc(city)} до ${fmtD(parent.to)}`}</div>`;
+    box.querySelectorAll('input[name=ret]').forEach(r => r.onchange = () => stopScheme(form, id));
+    return;
+  }
+  const a = prev ? prev.city : 'Старт', b = next ? next.city : 'Домой';
+  const warn = prev?.to && prev.to > from ? `<div class="sub">${esc(prev.city)} сейчас до ${fmtD(prev.to)}, сдвину на ${fmtD(from)}</div>` : '';
+  const warn2 = next && to && to > next.from ? `<div class="sub" style="color:var(--red)">Пересекается с «${esc(next.city)}» (с ${fmtD(next.from)}). Поправь даты</div>` : '';
+  box.innerHTML = `<div class="ln3">${nd(a)}${ar}${nd(city, 1)}${ar}${nd(b)}</div>${warn}${warn2}`;
+}
+function applyExcursion(out, id, ret) {
+  if (out.to && out.from && out.to < out.from) { toast('Отъезд раньше приезда'); return false; }
+  const { parent, prev } = stopPlace(out.from, out.to, id);
+  if (!parent) { if (prev?.to && prev.to > out.from) put('stops', prev.id, { ...data.stops[prev.id], to: out.from }); return true; }
+  const P = data.stops[parent.id], end = P.to;
+  put('stops', parent.id, { ...P, to: out.from });
+  if (ret === 'back') {
+    const { city, country, lat, lng, mapUrl } = P;
+    put('stops', uid(), JSON.parse(JSON.stringify({ city, country, lat, lng, mapUrl, from: out.to, to: end, createdAt: Date.now() })));
+    // «Ищем» жильё на весь период тоже делим, забронированное не трогаем
+    list('stays').filter(x => x.city === P.city && x.status === 'todo' && x.checkin && x.checkout && x.checkin <= out.from && x.checkout >= out.to).forEach(x => {
+      const { id: xid, ...rest } = x;
+      put('stays', xid, { ...data.stays[xid], checkout: out.from });
+      put('stays', uid(), { ...rest, files: undefined, checkin: out.to, checkout: x.checkout, createdAt: Date.now() });
+    });
+    setTimeout(() => toast(`${P.city} разделён: до ${fmtD(out.from)} и с ${fmtD(out.to)}`), 700);
+  } else out.to = out.to || end;
+  return true;
+}
 function openSplit(id) {
   const st = data.stays[id];
   const mid = addDays(st.checkin, Math.max(1, Math.floor(daysBetween(st.checkin, st.checkout) / 2)));
@@ -737,7 +795,7 @@ function renderSchema(seg) {
     else if (i > 0) h += gapHtml(stops[i-1].city, s.city, s.from);
     else if (mineMode) h += gapHtml('', s.city, s.from, `Как ты добираешься до ${esc(s.city)}? <u>Добавить билет</u>`);
     const n = s.from && s.to ? daysBetween(s.from, s.to) : 0;
-    const cs = stays.filter(x => x.city === s.city && visible(x));
+    const cs = stays.filter(x => stayInStop(x, s) && visible(x));
     const pc = places.filter(p => p.city === s.city).length, nc = notes.filter(x => x.city === s.city).length;
     const stayChips = cs.length ? cs.map(x => {
         if (x.status !== 'todo') return `<span class="chip">🏨 ${esc(x.name)}</span>`;
@@ -761,7 +819,7 @@ function openCity(id) {
   const s0 = data.stops?.[id]; if (!s0) return; const s = { ...s0, id };
   const i = stopsSorted().findIndex(x => x.id === id), c = CCOL[i % CCOL.length];
   const legs = legsByStop(list('transport').filter(visible)).by[id] || [];
-  const stays = list('stays').filter(x => x.city === s.city && visible(x));
+  const stays = list('stays').filter(x => stayInStop(x, s) && visible(x));
   const places = list('places').filter(p => p.city === s.city);
   const notes = list('notes').filter(n => n.city === s.city).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   const n = s.from && s.to ? daysBetween(s.from, s.to) : 0;
@@ -1019,6 +1077,7 @@ function openForm(sec, id, preset = {}) {
   const it = id ? { ...(data[sec]?.[id] || {}) } : { ...preset };
   if (sec === 'transport') { it.type ||= 'plane'; it.status ||= 'booked'; }
   if (sec === 'stays') it.status ||= 'booked';
+  if (sec === 'stops' && !id && !it.from) { const l = stopsSorted().pop(); if (l?.to) { it.from = l.to; it.to = addDays(l.to, 2); } }
   const isAdv = f => (Array.isArray(f[0]) ? f[0][3] : f[3])?.adv;
   const fh = f => Array.isArray(f[0]) ? `<div class="two">${f.map(x => fieldHtml(x, it)).join('')}</div>` : fieldHtml(f, it);
   const basic = sc.fields.filter(f => !isAdv(f)).map(fh).join('');
@@ -1030,6 +1089,7 @@ function openForm(sec, id, preset = {}) {
     <div class="actions">${id ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri" id="saveBtn">Сохранить</button></div>${meta}</form>`);
   const form = $('#itemForm');
   $('#cancelBtn').onclick = closeSheet;
+  if (sec === 'stops') { const two = form.querySelector('input[name=from]').closest('.two'); two.insertAdjacentHTML('afterend', '<div class="rsch" id="rsch"></div>'); const upd = () => stopScheme(form, id); form.addEventListener('input', e => { if (e.target.name !== 'ret') upd(); }); upd(); }
   form.addEventListener('change', e => { if (e.target.type === 'file') { const n = e.target.files.length; form.querySelector('[data-fpick]').textContent = n ? `Выбрано файлов: ${n}. Нажмите «Сохранить»` : ''; const st = form.querySelector('input[name=status][value=booked]'); if (n && st) st.checked = true; } });
   if (id) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { Object.keys(it.files || {}).forEach(removeFile); del(sec, id); closeSheet(); toast('Удалено'); } });
   form.onsubmit = async e => {
@@ -1058,6 +1118,7 @@ function openForm(sec, id, preset = {}) {
         if (c) { out.lat = c.lat; out.lng = c.lng; } else if (/^https?:\/\//.test(raw)) out.mapUrl = raw; else if (raw) { toast('Не понял координаты'); return; }
       } else out[name] = form.elements[name].value.trim();
     }
+    if (sec === 'stops') { const ret = form.querySelector('input[name=ret]:checked')?.value; if (!applyExcursion(out, id, ret)) return; }
     if (!id) { out.createdAt = Date.now(); if (sec === 'notes') out.author = author(); if (sec === 'options') out.by = author(); }
     put(sec, id || uid(), out); haptic('medium'); closeSheet(); toast('Сохранено');
   };
