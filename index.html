@@ -33,20 +33,21 @@ html,body{overflow-x:hidden;margin:0;background:var(--bg2);color:var(--text);fon
 a{color:var(--link);text-decoration:none}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:720px;margin:0 auto}
-.hero{background:linear-gradient(135deg,var(--g1),var(--g2) 50%,var(--g3));color:#fff;padding:16px 16px 14px;border-radius:0 0 26px 26px;position:relative;overflow:hidden}
+.hero{background:linear-gradient(135deg,var(--g1),var(--g2) 50%,var(--g3));color:#fff;padding:12px 16px 12px;border-radius:0 0 22px 22px;position:relative;overflow:hidden}
 .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12)}
 .hero-top{display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1}
-.hero h1{margin:0;font-size:26px;letter-spacing:-.02em;line-height:1.15}
+.hero h1{margin:0;font-size:22px;letter-spacing:-.02em;line-height:1.15}
 .hero .sub{opacity:.9;font-size:13.5px;margin-top:3px}
 .me-btn{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:999px;padding:4px 10px 4px 4px;font-size:14px;font-weight:600;backdrop-filter:blur(6px);white-space:nowrap}
 .me-btn .av{width:28px;height:28px;font-size:13px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
-.ready{position:relative;z-index:1;margin-top:14px;font-size:12.5px;display:flex;justify-content:space-between;opacity:.95}
+.hero-row{display:flex;align-items:center;gap:12px;margin-top:10px;position:relative;z-index:1}
+.ready{position:relative;z-index:1;margin-top:0;font-size:12px;display:flex;justify-content:space-between;opacity:.95}
 .bar{height:6px;background:rgba(255,255,255,.25);border-radius:6px;margin-top:5px;overflow:hidden;position:relative;z-index:1}
 .bar i{display:block;height:100%;background:#fff;border-radius:6px;transition:width .4s}
-.seg-hero{display:flex;background:rgba(0,0,0,.15);border-radius:12px;padding:3px;margin-top:12px;position:relative;z-index:1}
-.seg-hero button{flex:1;border:0;background:none;color:#fff;padding:6px;border-radius:9px;font-size:13.5px;font-weight:600;opacity:.85}
+.seg-hero{flex:none;display:flex;background:rgba(0,0,0,.15);border-radius:11px;padding:3px;margin-top:0;position:relative;z-index:1}
+.seg-hero button{flex:1;border:0;background:none;color:#fff;padding:5px 12px;border-radius:9px;font-size:13.5px;font-weight:600;opacity:.85}
 .seg-hero button.on{background:#fff;color:#2a2340;opacity:1}
-main{padding:14px 12px 120px}
+main{padding:12px 12px 160px}
 .tab{display:none}.tab.active{display:block;animation:fade .2s}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 nav{position:fixed;bottom:0;left:0;right:0;z-index:30;padding:0 10px calc(8px + env(safe-area-inset-bottom))}
@@ -120,6 +121,7 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .ev{display:flex;gap:10px;padding:8px 14px;border-top:1px solid var(--line);cursor:pointer;align-items:center}
 .ev .t{color:var(--hint);font-size:13px;width:42px;text-align:center;flex:none;font-variant-numeric:tabular-nums}
 .ev .ic{font-size:18px;width:24px;text-align:center;flex:none}
+.ev .grow>div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .night{padding:8px 14px 10px 66px;border-top:1px solid var(--line);font-size:13px;color:var(--hint)}
 .night.warn{color:var(--warn);cursor:pointer}
 .pass{padding:0;overflow:hidden}
@@ -256,9 +258,8 @@ details.adv>summary::-webkit-details-marker{display:none}
     <div class="grow"><h1 id="title">Поездка</h1><div class="sub" id="subtitle"></div></div>
     <button class="me-btn" id="meBtn"></button>
   </div>
-  <div class="ready"><span id="readyLabel"></span><span id="sync"></span></div>
-  <div class="bar"><i id="readyBar" style="width:0"></i></div>
-  <div class="seg-hero" id="viewSeg"><button data-view="mine">Только моё</button><button data-view="all">Вся компания</button></div>
+  <div class="hero-row"><div class="seg-hero" id="viewSeg"><button data-view="mine">Моё</button><button data-view="all">Все</button></div>
+    <div class="grow"><div class="ready"><span id="readyLabel"></span><span id="sync"></span></div><div class="bar"><i id="readyBar" style="width:0"></i></div></div></div>
 </div></header>
 
 <main class="wrap">
@@ -502,6 +503,19 @@ function tripRange() {
   const x = ds.filter(Boolean).sort();
   return { start: m.start || x[0], end: m.end || x[x.length - 1] };
 }
+function mergeLegs(legs) {
+  const m = new Map();
+  for (const t of legs) {
+    const k = t.number ? t.number.replace(/[\s-]/g, '').toUpperCase() + '|' + (t.depart || '').slice(0, 16) : t.id;
+    const ex = m.get(k);
+    if (!ex) { m.set(k, { ...t, recs: [t] }); continue; }
+    ex.recs.push(t);
+    ex.who = (!ex.who?.length || !t.who?.length) ? [] : [...new Set([...ex.who, ...t.who])];
+    if (ex.status === 'todo' && t.status !== 'todo') ex.status = t.status;
+    ex.files = { ...(ex.files || {}), ...(t.files || {}) };
+  }
+  return [...m.values()].map(x => { const mine = me && x.recs.find(r => r.who?.includes(me)); if (mine) { x.id = mine.id; x.confirmation = mine.confirmation || x.confirmation; x.pnrs = mine.pnrs; } return x; });
+}
 function legsByStop(trs) {
   const stops = stopsSorted(), by = {}, before = [], after = [];
   for (const t of trs) {
@@ -539,10 +553,11 @@ function renderHeader() {
   else if (start && end && t <= end) sub += ` · день ${daysBetween(start, t) + 1} из ${daysBetween(start, end) + 1}`;
   $('#subtitle').textContent = sub;
   $('#meBtn').innerHTML = me ? `${av(me)}${esc(me)} ▾` : `<span class="av" style="--c:rgba(255,255,255,.3)">?</span>Кто ты?`;
-  const items = [...list('stays'), ...list('transport')].filter(visible);
-  const done = items.filter(x => x.status !== 'todo').length;
-  const pct = items.length ? Math.round(done / items.length * 100) : 0;
-  $('#readyLabel').textContent = items.length ? `Готовность ${view === 'mine' && me ? 'у тебя' : 'компании'}: ${done} из ${items.length} броней` : '';
+  const rows = stopsSorted().length ? summaryRows() : [];
+  const tR = rows.filter(r => r.kind !== 'extra'), sR = rows.filter(r => r.kind !== 'home');
+  const done = tR.filter(r => tState(r) === 'on').length + sR.filter(r => sState(r) === 'on').length, total = tR.length + sR.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $('#readyLabel').textContent = total ? `Готово ${pct}% · ${done} из ${total}` : '';
   $('#readyBar').style.width = pct + '%';
   $('#sync').textContent = mode === 'fb' ? (online ? '● онлайн' : '○ офлайн') : '';
   document.querySelectorAll('#viewSeg button').forEach(b => b.classList.toggle('on', b.dataset.view === view));
@@ -609,7 +624,7 @@ function renderSummary() {
     const n = stayNights(r), open = openRow === i;
     const label = r.kind === 'extra' ? `↳ ${esc(r.stay?.name || r.to)}` : `${esc(r.from)} → ${esc(r.to)}`;
     h += `<div class="srow ${r.kind === 'extra' ? 'sub' : ''} ${open ? 'open' : ''}" data-row="${i}"><span class="sd">${dm(r.date)}</span><span class="sn">${label}</span>
-      <span>${r.kind === 'extra' ? '' : (() => { const st = tState(r); return `<button class="tgb ${st}" data-tt="${i}" aria-label="Билет">${st === 'part' ? `${covT(r)}/${people().length}` : (TYPES[r.legs[0]?.type] || TYPES.plane)[0]}</button>`; })()}</span>
+      <span>${r.kind === 'extra' ? '' : (() => { const st = tState(r); return `<button class="tgb ${st}" data-tt="${i}" aria-label="Билет">${st === 'part' ? `${covT(r)}/${people().length}` : (r.legs.length ? (TYPES[r.legs[0].type] || TYPES.plane)[0] : '🎫')}</button>`; })()}</span>
       <span>${r.kind === 'home' ? '' : `<button class="tgb ${sState(r)}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>`}</span></div>`;
     if (open) h += rowDetail(r, i);
   });
@@ -618,7 +633,7 @@ function renderSummary() {
 }
 function rowDetail(r, i) {
   let h = `<div class="sx">`;
-  const legs = r.legs;
+  const legs = mergeLegs(r.legs);
   if (r.kind !== 'extra') h += `<div class="ln">${coverHtml('t', r, i)}</div>`;
   if (r.kind !== 'home' && r.stay && r.stay.status !== 'todo') h += `<div class="ln">${coverHtml('s', r, i)}</div>`;
   if (r.kind !== 'extra') {
@@ -714,10 +729,10 @@ function renderSchema(seg) {
   h += `<div class="h2">Схема маршрута <button data-add="stops">＋ город</button></div><div class="jr">`;
   const first = before[0] || (by[stops[0].id] || [])[0];
   if (first) h += `<div class="node home"><div class="node-h"><b style="font-size:15px">🏠 ${esc(cityOfPt(first.from))}</b><span class="n">старт ${fmtD(first.depart)}</span></div></div>`;
-  before.forEach(t => h += legHtml(t));
+  mergeLegs(before).forEach(t => h += legHtml(t));
   stops.forEach((s, i) => {
     const legs = by[s.id] || [];
-    if (legs.length) legs.forEach(t => h += legHtml(t));
+    if (legs.length) mergeLegs(legs).forEach(t => h += legHtml(t));
     else if (mineMode && (allBy[s.id] || []).length) h += `<div class="leg gap tap" data-joinstop="${s.id}"><div class="ic">❔</div>У тебя нет билета до ${esc(s.city)}. <u>Лечу с остальными</u> или <u>загрузить свой</u></div>`;
     else if (i > 0) h += gapHtml(stops[i-1].city, s.city, s.from);
     else if (mineMode) h += gapHtml('', s.city, s.from, `Как ты добираешься до ${esc(s.city)}? <u>Добавить билет</u>`);
@@ -734,7 +749,7 @@ function renderSchema(seg) {
       <div class="node-d">${s.from ? fmtDW(s.from) : ''}${s.to ? ' → ' + fmtDW(s.to) : ''}</div>
       <div class="chips">${stayChips}${pc ? `<span class="chip">📍 ${pc}</span>` : ''}${nc ? `<span class="chip">💬 ${nc}</span>` : ''}</div></div>`;
   });
-  after.forEach(t => h += legHtml(t));
+  mergeLegs(after).forEach(t => h += legHtml(t));
   const last = stops[stops.length - 1];
   if (!after.length) h += gapHtml(last.city, 'Домой', last.to, `Обратные билеты${mineMode ? ' у тебя' : ''} не добавлены. <u>Добавить</u>`);
   h += `<div class="node home"><div class="node-h"><b style="font-size:15px">🏠 Домой</b><span class="n">${last.to ? '~' + fmtD(last.to) : ''}</span></div></div></div>`;
@@ -766,7 +781,7 @@ function renderDays() {
   const { start, end } = tripRange();
   if (!start) return $('#tab-days').innerHTML = `<div class="empty"><b>🗓</b>Укажите даты поездки</div>`;
   const evs = {}; const add = (d, e) => { if (d) (evs[d] ||= []).push(e); };
-  list('transport').filter(visible).forEach(t => add(t.depart?.slice(0,10), { o:1, time: fmtT(t.depart), sec:'transport', it:t }));
+  mergeLegs(list('transport').filter(visible)).forEach(t => add(t.depart?.slice(0,10), { o:1, time: fmtT(t.depart), sec:'transport', it:t }));
   list('stays').filter(visible).forEach(s => { add(s.checkout, { o:0, sec:'stays', it:s, kind:'out' }); add(s.checkin, { o:3, sec:'stays', it:s, kind:'in' }); });
   list('places').forEach(p => add(p.day, { o:2, time: p.time || '', sec:'places', it:p }));
   const stops = stopsSorted(), stays = list('stays').filter(visible), trs = list('transport').filter(visible);
@@ -783,7 +798,7 @@ function renderDays() {
       <div class="day-city">${stop ? `<span style="color:${sc}">●</span> ${esc(stop.city)}` : ''} <span class="muted">· день ${daysBetween(start, d) + 1}</span></div></div>`;
     for (const e of lst) h += evRow(e);
     if (d < last) {
-      if (night) h += night.status === 'todo' ? `<div class="night warn" data-edit="stays:${night.id}">🔎 Ночуем в ${esc(night.city || '')}: жильё не забронировано</div>` : `<div class="night">🛏 ${esc(night.name)}</div>`;
+      if (night) h += night.status === 'todo' ? `<div class="night warn" data-edit="stays:${night.id}">🔎 Ночь: ${esc(night.city || '')}, жильё не забронировано</div>` : `<div class="night">🛏 ${esc(night.name)}</div>`;
       else if (trs.some(x => x.depart?.slice(0,10) <= d && x.arrive?.slice(0,10) > d)) h += `<div class="night">🌙 Ночь в дороге</div>`;
       else h += `<div class="night warn">⚠️ Где ночуем — не указано</div>`;
     }
@@ -804,7 +819,7 @@ function evRow(e) {
     if (e.kind === 'in' && it.checkout) sub = nights(daysBetween(it.checkin, it.checkout));
   } else { ic = (CATS[it.cat] || CATS.other)[0]; title = esc(it.name); sub = esc(it.notes || ''); }
   return `<div class="ev" data-edit="${e.sec}:${it.id}"><div class="t">${esc(e.time || '')}</div><div class="ic">${ic}</div>
-    <div class="grow"><div>${title}</div>${sub ? `<div class="muted">${sub}</div>` : ''}</div>${e.sec === 'transport' ? avs(it.who, 3) : ''}</div>`;
+    <div class="grow"><div>${title}</div>${sub ? `<div class="muted">${sub}</div>` : ''}</div>${e.sec === 'transport' ? avs(it.who, 4) : ''}</div>`;
 }
 
 /* --- брони --- */
