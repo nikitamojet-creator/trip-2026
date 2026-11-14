@@ -215,14 +215,20 @@ details.adv>summary::-webkit-details-marker{display:none}
 .toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:rgba(20,18,30,.9);color:#fff;padding:9px 16px;border-radius:12px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .hint-s{font-size:12px;color:var(--hint);margin-top:4px}
-.srow{display:grid;grid-template-columns:44px minmax(0,1fr) 34px 52px;gap:6px;align-items:center;min-height:38px;padding:0 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.srow{display:grid;grid-template-columns:44px minmax(0,1fr) 42px 52px;gap:6px;align-items:center;min-height:38px;padding:0 4px;border-bottom:1px solid var(--line);cursor:pointer}
 .srow.open{background:var(--soft);border-radius:10px 10px 0 0}
 .srow.sub .sn{color:var(--hint);padding-left:12px}
 .srow .sd{font-size:12.5px;color:var(--hint);font-variant-numeric:tabular-nums}
 .srow .sn{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.shd{display:grid;grid-template-columns:44px minmax(0,1fr) 34px 52px;gap:6px;padding:0 4px 4px;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em}
+.shd{display:grid;grid-template-columns:44px minmax(0,1fr) 42px 52px;gap:6px;padding:0 4px 4px;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em}
 .shd span:nth-child(n+3){text-align:center}
 .tgb{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;height:26px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px dashed var(--line);color:var(--hint);background:none;padding:0;opacity:.85}
+.tgb.part{border:1.5px solid color-mix(in srgb,#f5a524 60%,transparent);background:color-mix(in srgb,#f5a524 16%,transparent);color:#d18a0b;opacity:1}
+.cov{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.pc{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px 2px 2px;font-size:12.5px;background:var(--card);border:1.5px solid transparent}
+.pc .av{width:20px;height:20px;font-size:10px}
+.pc.no{border:1.5px dashed var(--line);color:var(--hint);background:none;cursor:pointer}
+.pc.no .av{filter:grayscale(1);opacity:.5}
 .tgb.on{border:1.5px solid color-mix(in srgb,var(--ok) 55%,transparent);background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok);opacity:1}
 .sx{background:var(--soft);border-radius:0 0 10px 10px;padding:6px 10px 10px;margin-bottom:4px;font-size:13.5px;border-bottom:1px solid var(--line)}
 .sx .ln{display:flex;align-items:center;gap:8px;padding:6px 0;flex-wrap:wrap}
@@ -560,10 +566,12 @@ function summaryRows() {
   const stays = list('stays').filter(visible);
   const rows = [];
   stops.forEach((s, i) => {
-    const legs = [...(i === 0 ? before : []), ...(by[s.id] || [])];
+    const own = [...(i === 0 ? before : []), ...(by[s.id] || [])];
+    const thru = s.from ? all.filter(t => !own.includes(t) && t.depart && t.arrive && t.depart.slice(0, 10) <= s.from && t.arrive.slice(0, 10) > s.from) : [];
+    const legs = [...own, ...thru];
     const prev = i ? stops[i - 1].city : (cityOfPt(legs[0]?.from) || 'Старт');
     const cs = stays.filter(x => x.city === s.city).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
-    rows.push({ kind: 'move', stop: s, from: prev, to: s.city, date: (relevant(legs)[0]?.depart || s.from || '').slice(0, 10), legs, stay: cs[0] || null });
+    rows.push({ kind: 'move', stop: s, from: prev, to: s.city, date: (relevant(own)[0]?.depart || s.from || '').slice(0, 10), legs, own, stay: cs[0] || null });
     cs.slice(1).forEach(st => rows.push({ kind: 'extra', stop: s, from: '', to: s.city, date: st.checkin, legs: [], stay: st }));
   });
   const last = stops[stops.length - 1];
@@ -571,29 +579,42 @@ function summaryRows() {
   return rows;
 }
 const relevant = legs => view === 'mine' && me ? legs.filter(t => !t.who?.length || t.who.includes(me)) : legs;
-const ticketOn = r => { const l = relevant(r.legs); return l.length > 0 && l.every(t => t.status !== 'todo'); };
+const hasTicket = (r, p) => r.legs.some(t => t.status !== 'todo' && (!t.who?.length || t.who.includes(p)));
+const hasStay = (st, p) => !!st && st.status !== 'todo' && (!st.who?.length || st.who.includes(p));
+const covT = r => people().filter(p => hasTicket(r, p)).length;
+const ticketOn = r => view === 'mine' && me ? hasTicket(r, me) : (people().length ? covT(r) === people().length : r.legs.some(t => t.status !== 'todo'));
+const tState = r => { if (view === 'mine' && me) return hasTicket(r, me) ? 'on' : ''; const n = covT(r), N = people().length; return n && n === N ? 'on' : n ? 'part' : ''; };
+const sState = r => { const st = r.stay; if (!st || st.status === 'todo') return ''; if (view === 'mine' && me) return hasStay(st, me) ? 'on' : ''; const n = people().filter(p => hasStay(st, p)).length; return n === people().length ? 'on' : n ? 'part' : ''; };
+function coverHtml(kind, r, i) {
+  const ppl = people(); if (!ppl.length) return '';
+  const ok = p => kind === 't' ? hasTicket(r, p) : hasStay(r.stay, p);
+  if (ppl.every(ok)) return `<span class="muted">${kind === 't' ? 'Билет' : 'Жильё'} есть у всех ✓</span>`;
+  return `<div class="cov"><span class="muted" style="min-width:52px">${kind === 't' ? 'Билет:' : 'Жильё:'}</span>${ppl.map(p => ok(p) ? `<span class="pc">${av(p)}${esc(p)} ✓</span>` : `<button class="pc no" data-mark="${kind}|${i}|${esc(p)}" title="Отметить, что есть">${av(p)}${esc(p)} ✗</button>`).join('')}</div>`;
+}
 const stayNights = r => r.stay?.checkin && r.stay?.checkout ? daysBetween(r.stay.checkin, r.stay.checkout) : (r.stop?.from && r.stop?.to ? daysBetween(r.stop.from, r.stop.to) : 0);
 function renderSummary() {
   sumRows = summaryRows();
   const tRows = sumRows.filter(r => r.kind !== 'extra'), sRows = sumRows.filter(r => r.kind !== 'home');
-  const tOk = tRows.filter(ticketOn).length, sOk = sRows.filter(r => r.stay && r.stay.status !== 'todo').length;
+  const tOk = tRows.filter(r => tState(r) === 'on').length, sOk = sRows.filter(r => sState(r) === 'on').length;
   const noStay = sRows.filter(r => !(r.stay && r.stay.status !== 'todo')).reduce((a, r) => a + stayNights(r), 0);
   let h = `<div class="sumhead" style="justify-content:flex-end"><span>билеты <b>${tOk}/${tRows.length}</b> · жильё <b>${sOk}/${sRows.length}</b>${noStay ? ` · без жилья <b style="color:var(--warn)">${nights(noStay)}</b>` : ''}</span></div>
     <div class="card" style="padding:8px 8px 4px"><div class="shd"><span>дата</span><span>маршрут</span><span>билет</span><span>жильё</span></div>`;
   sumRows.forEach((r, i) => {
-    const tOn = ticketOn(r), sOn = r.stay && r.stay.status !== 'todo', n = stayNights(r), open = openRow === i;
+    const n = stayNights(r), open = openRow === i;
     const label = r.kind === 'extra' ? `↳ ${esc(r.stay?.name || r.to)}` : `${esc(r.from)} → ${esc(r.to)}`;
     h += `<div class="srow ${r.kind === 'extra' ? 'sub' : ''} ${open ? 'open' : ''}" data-row="${i}"><span class="sd">${dm(r.date)}</span><span class="sn">${label}</span>
-      <span>${r.kind === 'extra' ? '' : `<button class="tgb ${tOn ? 'on' : ''}" data-tt="${i}" aria-label="Билет">${(TYPES[relevant(r.legs)[0]?.type] || TYPES.plane)[0]}</button>`}</span>
-      <span>${r.kind === 'home' ? '' : `<button class="tgb ${sOn ? 'on' : ''}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>`}</span></div>`;
+      <span>${r.kind === 'extra' ? '' : (() => { const st = tState(r); return `<button class="tgb ${st}" data-tt="${i}" aria-label="Билет">${st === 'part' ? `${covT(r)}/${people().length}` : (TYPES[r.legs[0]?.type] || TYPES.plane)[0]}</button>`; })()}</span>
+      <span>${r.kind === 'home' ? '' : `<button class="tgb ${sState(r)}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>`}</span></div>`;
     if (open) h += rowDetail(r, i);
   });
-  h += `<div style="padding:8px 4px 6px"><button class="chip link" data-add="stops">＋ Добавить город в маршрут</button></div></div><div class="muted" style="text-align:center;margin-top:8px">Нажми на метку, чтобы отметить. На строку, чтобы открыть подробности и поменять даты</div>`;
+  h += `<div style="padding:8px 4px 6px"><button class="chip link" data-add="stops">＋ Добавить город в маршрут</button></div></div><div class="muted" style="text-align:center;margin-top:8px">${view === 'mine' && me ? 'Показано твоё. Переключи «Вся компания», чтобы видеть, у кого чего нет' : '<span class="tgb on" style="display:inline-flex;width:auto;padding:0 6px;height:20px">у всех</span> <span class="tgb part" style="display:inline-flex;width:auto;padding:0 6px;height:20px">3/5 не у всех</span> <span class="tgb" style="display:inline-flex;width:auto;padding:0 6px;height:20px">ни у кого</span>'}<br>Нажми на строку: подробности, кто без билета, даты</div>`;
   return h;
 }
 function rowDetail(r, i) {
   let h = `<div class="sx">`;
-  const legs = relevant(r.legs);
+  const legs = r.legs;
+  if (r.kind !== 'extra') h += `<div class="ln">${coverHtml('t', r, i)}</div>`;
+  if (r.kind !== 'home' && r.stay && r.stay.status !== 'todo') h += `<div class="ln">${coverHtml('s', r, i)}</div>`;
   if (r.kind !== 'extra') {
     h += legs.length ? legs.map(t => `<div class="ln" data-edit="transport:${t.id}">${(TYPES[t.type] || TYPES.other)[0]} <b>${esc(t.number || '')}</b> ${esc(cityOfPt(t.from))} → ${esc(cityOfPt(t.to))} <span class="muted">${fmtDW(t.depart)} ${fmtT(t.depart)}</span>${t.status === 'todo' ? '<span class="badge warn">не куплен</span>' : ''} ${copyChip(myPnr(t), 'PNR')}${filesChips(t)}</div>`).join('')
       : `<div class="ln"><span class="muted">Билета нет.</span><button class="chip link" data-tt="${i}">＋ добавить</button></div>`;
@@ -1115,7 +1136,7 @@ document.addEventListener('click', e => {
   const dt = T.closest('[data-deltodo]'); if (dt) { del('todo', dt.dataset.deltodo); return; }
   const rv = T.closest('[data-rview]'); if (rv) { routeView = rv.dataset.rview; ls.set('trip-rview', routeView); haptic('soft'); renderRoute(); return; }
   const tt = T.closest('[data-tt]'); if (tt) { e.stopPropagation(); const r = sumRows[+tt.dataset.tt]; if (!r) return;
-    if (ticketOn(r)) { openRow = openRow === +tt.dataset.tt ? null : +tt.dataset.tt; renderRoute(); return; }
+    if (ticketOn(r) || (view === 'all' && covT(r) > 0)) { openRow = openRow === +tt.dataset.tt ? null : +tt.dataset.tt; renderRoute(); return; }
     if (me && view === 'mine' && r.stop && r.legs.some(t => !isMine(t))) return openJoin(r.stop.id);
     const todo = relevant(r.legs).find(t => t.status === 'todo');
     if (todo) { put('transport', todo.id, { ...data.transport[todo.id], status: 'booked' }); haptic('medium'); toast('Отмечено: билет есть'); return; }
@@ -1125,6 +1146,13 @@ document.addEventListener('click', e => {
     put('stays', uid(), { status: 'booked', name: 'Жильё: ' + r.to, city: r.to, checkin: r.stop?.from, checkout: r.stop?.to, createdAt: Date.now() }); haptic('medium'); toast('Жильё отмечено. Ссылку можно добавить в строке'); return; }
   const aa = T.closest('[data-addafter]'); if (aa) { const st = data.stops[aa.dataset.addafter]; openForm('stops', null, { from: st.to, to: st.to ? addDays(st.to, 2) : '' }); return; }
   const ds = T.closest('[data-delstop]'); if (ds) { const id = ds.dataset.delstop, st = data.stops[id]; confirmBox(`Убрать ${st.city} из маршрута? Билеты и жильё останутся в «Бронях».`, ok => { if (ok) { del('stops', id); openRow = null; toast('Город убран'); } }); return; }
+  const mk = T.closest('[data-mark]'); if (mk) { e.stopPropagation(); const [k, idx, p] = mk.dataset.mark.split('|'); const r = sumRows[+idx]; if (!r) return;
+    if (k === 's') { const st = data.stays[r.stay.id]; put('stays', r.stay.id, { ...st, who: [...new Set([...(st.who || []), p])] }); toast(`${p}: жильё отмечено`); return; }
+    const booked = (r.own || r.legs).filter(t => t.status !== 'todo' && t.who?.length);
+    if (!booked.length) { openForm('transport', null, { from: r.from, to: r.to, depart: r.date, status: 'booked', who: [p] }); return; }
+    confirmBox(`Отметить, что у ${p} есть ${booked.map(t => t.number || 'этот билет').join(' + ')}?`, ok => { if (!ok) return;
+      booked.forEach(t => put('transport', t.id, { ...data.transport[t.id], who: [...new Set([...(t.who || []), p])] })); haptic('medium'); toast(`${p}: билет отмечен`); });
+    return; }
   const sp = T.closest('[data-split]'); if (sp) { e.stopPropagation(); openSplit(sp.dataset.split); return; }
   const fl = T.closest('[data-file]'); if (fl) { e.preventDefault(); e.stopPropagation(); openFile(fl.dataset.file); return; }
   const jn = T.closest('[data-join]'); if (jn) { e.stopPropagation(); if (!me) return openMe(true); const t = data.transport[jn.dataset.join]; if (!t) return;
