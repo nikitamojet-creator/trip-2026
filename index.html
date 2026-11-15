@@ -204,11 +204,13 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 [hidden]{display:none!important}
 .pbar{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:32;max-width:496px;margin:0 auto;align-items:center;gap:8px;background:var(--card);border-radius:18px;padding:8px 8px 8px 14px;box-shadow:0 8px 28px rgba(0,0,0,.3);border:1.5px solid var(--btn)}
 .pbar span{flex:1;font-weight:600;font-size:14px;line-height:1.2}.pbar .btn{flex:0 0 auto;padding:10px 14px}
-.tgb.pend{box-shadow:0 0 0 2px var(--btn);opacity:1;position:relative}
+.tgb{position:relative}.tgb::before{content:"";position:absolute;inset:-7px -3px}
+.tgb.pend{box-shadow:0 0 0 2px var(--btn);opacity:1}
 .tgb.pend::after{content:"";position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--btn);box-shadow:0 0 0 2px var(--card)}
 .tgn{display:block;text-align:center;font-size:11px;color:var(--hint);white-space:nowrap}
 .pc.pend{border:1.5px solid var(--btn);background:color-mix(in srgb,var(--btn) 12%,transparent);cursor:pointer}
 .sx .pendn{color:var(--btn);font-weight:600;font-size:12.5px}
+.shint{font-size:11.5px;color:var(--hint);padding:0 4px 6px}
 .sfoot{display:flex;gap:6px;flex-wrap:wrap;padding:8px 4px 6px}
 .edc{position:relative;background:var(--bg2);border-radius:16px;padding:8px 10px 10px 12px;border-left:4px solid var(--c)}
 .edc.new{outline:1.5px dashed var(--btn);outline-offset:-1.5px}
@@ -224,9 +226,11 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .edd input{background:var(--card);height:42px!important;min-height:42px}
 .edd .chip{height:42px;background:var(--card)}
 input.chg{border-color:var(--btn)!important;background:color-mix(in srgb,var(--btn) 12%,var(--card))!important}
-.edw{display:flex;align-items:center;gap:3px;margin-top:8px;font-size:12.5px;flex-wrap:wrap}
-.edw .muted{margin-left:4px}
-.edp{border:0;background:none;padding:2px;opacity:.28;filter:grayscale(1)}.edp.on{opacity:1;filter:none}
+.edw{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:12.5px;flex-wrap:wrap}
+.edwl{display:inline-flex;align-items:center;gap:1px;border-radius:999px;padding:1px 4px 1px 6px;border:1.5px solid transparent}
+.edwl.chg{border-color:var(--btn);background:color-mix(in srgb,var(--btn) 12%,var(--card))}
+.edp{border:0;background:none;padding:3px 2px;opacity:.28;filter:grayscale(1)}.edp.on{opacity:1;filter:none}
+.edz{margin-left:auto;border:0;background:var(--card);color:var(--link);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:600;white-space:nowrap}
 .edi{font-size:12.5px;margin-top:6px;line-height:1.35}.edi:empty{display:none}.edi .err{color:var(--red)}.edi .warn{color:var(--warn)}
 .edb{position:absolute;top:-8px;right:44px;background:var(--btn);color:var(--btn-text);font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 8px}
 .edins{display:flex;justify-content:center;align-items:center;height:30px;position:relative}
@@ -237,8 +241,8 @@ input.chg{border-color:var(--btn)!important;background:color-mix(in srgb,var(--b
 .edins.last button{width:auto;height:auto;border-radius:999px;padding:10px 18px;font-size:14px;font-weight:600}.edins.last button::after{display:none}
 .edadd{background:var(--card);border:1.5px solid var(--btn);border-radius:16px;padding:12px;margin:8px 0;display:flex;flex-direction:column;gap:8px}
 .edadd .edd input,.edadd>input{background:var(--bg2)}
-.edbar{display:flex;align-items:center;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
-.edbar .grow{font-size:13.5px;line-height:1.25}
+.edbar{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.edbar .grow{font-size:13.5px;line-height:1.25;flex:1 1 130px;min-width:130px}
 .edbar .btn{flex:0 0 auto;padding:11px 14px}.edbar .btn[disabled]{opacity:.4}
 .edbar .chip{flex:none}
 .edbar .edw2{font-size:12px;color:var(--red)}
@@ -318,7 +322,7 @@ details.adv>summary::-webkit-details-marker{display:none}
 .tgb{display:flex;align-items:center;justify-content:center;gap:2px;width:100%;height:26px;font-size:12px;font-weight:600;border-radius:8px;border:1.5px dashed var(--line);color:var(--hint);background:none;padding:0;opacity:.85}
 .tgb.part{border:1.5px solid color-mix(in srgb,#f5a524 60%,transparent);background:color-mix(in srgb,#f5a524 16%,transparent);color:#d18a0b;opacity:1}
 .cov{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
-.pc{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px 2px 2px;font-size:12.5px;background:var(--card);border:1.5px solid transparent}
+.pc{font:inherit;color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px 2px 2px;font-size:12.5px;background:var(--card);border:1.5px solid transparent}
 .pc .av{width:20px;height:20px;font-size:10px}
 .pc.no{border:1.5px dashed var(--line);color:var(--hint);background:none;cursor:pointer}
 .pc.no .av{filter:grayscale(1);opacity:.5}
@@ -485,7 +489,8 @@ const PAID = { paid:'Оплачено', part:'Частично', onsite:'Опл�
 const FLAGS = { 'Казахстан':'🇰🇿','Таиланд':'🇹🇭','Индонезия':'🇮🇩','Вьетнам':'🇻🇳','Малайзия':'🇲🇾','Россия':'🇷🇺','Камбоджа':'🇰🇭','Лаос':'🇱🇦','Сингапур':'🇸🇬','Филиппины':'🇵🇭','Шри-Ланка':'🇱🇰','Китай':'🇨🇳','Япония':'🇯🇵' };
 const CCOL = ['#ff6b4a','#f5a524','#13a89e','#3b82f6','#7b5cff','#e2479a','#16a34a','#0ea5e9','#a855f7'];
 const opts = o => Object.entries(o).map(([k, v]) => [k, Array.isArray(v) ? v.join(' ') : v]);
-const cityOpts = () => [['', '— Общее —'], ...stopsSorted().map(s => [s.city, s.city])];
+const cityNames = () => [...new Set(stopsSorted().map(s => s.city))];
+const cityOpts = () => [['', '— Общее —'], ...cityNames().map(c => [c, c])];
 
 const SCHEMA = {
   stops: { title: 'Город маршрута', fields: [
@@ -758,7 +763,8 @@ function tripRange() {
   list('stops').forEach(s => ds.push(s.from, s.to));
   list('transport').forEach(t => ds.push(t.depart?.slice(0,10)));
   const x = ds.filter(Boolean).sort();
-  return { start: m.start || x[0], end: m.end || x[x.length - 1] };
+  // когда маршрут есть, даты поездки считаются по нему, чтобы шапка не расходилась со сводкой
+  return list('stops').length && x.length ? { start: x[0], end: x[x.length - 1] } : { start: m.start || x[0], end: m.end || x[x.length - 1] };
 }
 function mergeLegs(legs) {
   const m = new Map();
@@ -830,7 +836,7 @@ function renderHeader() {
   document.title = m.title || 'Поездка'; setAppIdentity(m.title || 'Поездка');
   const { start, end } = tripRange(); const t = todayKey();
   let sub = start ? `${fmtD(start)} — ${fmtD(end)}` : '';
-  if (start && t < start) { const n = daysBetween(t, start); sub += ` · через ${n} ${plural(n,'день','дня','дней')}`; }
+  if (start && t < start) { const n = daysBetween(t, start); sub += `, через\u00a0${n}\u00a0${plural(n,'день','дня','дней')}`; }
   else if (start && end && t <= end) sub += ` · день ${daysBetween(start, t) + 1} из ${daysBetween(start, end) + 1}`;
   $('#subtitle').textContent = sub;
   $('#meBtn').innerHTML = me ? `${av(me)}${esc(me)} ▾` : `<span class="av" style="--c:rgba(255,255,255,.3)">?</span>Кто ты?`;
@@ -908,18 +914,18 @@ const rowKey = r => r.kind === 'move' ? 'm:' + r.stop.id : r.kind === 'home' ? '
 function tEff(r) {
   const k = rowKey(r), e = pend.get('t|' + k), base = tState(r), n0 = covT(r);
   if (e) return { st: e.want === 'on' ? 'on' : '', p: 1, n: n0 };
-  const mk = rPpl(r).filter(p => pend.has('mt|' + k + '|' + p) && !hasTicket(r, p));
-  if (!mk.length) return { st: base, n: n0 };
-  if (isMineMode()) return { st: base === 'on' || mk.includes(me) ? 'on' : '', p: 1, n: n0 };
-  const n = n0 + mk.length; return { st: n >= rPpl(r).length ? 'on' : 'part', p: 1, n };
+  const has = p => { const m = pend.get('mt|' + k + '|' + p); return m ? m.want === 'on' : hasTicket(r, p); };
+  if (!rPpl(r).some(p => pend.has('mt|' + k + '|' + p))) return { st: base, n: n0 };
+  if (isMineMode()) return { st: has(me) ? 'on' : '', p: 1, n: n0 };
+  const n = rPpl(r).filter(has).length; return { st: n >= rPpl(r).length ? 'on' : n ? 'part' : '', p: 1, n };
 }
 function sEff(r) {
   const k = rowKey(r), e = pend.get('s|' + k), base = sState(r), st = r.stay;
   if (e) return { st: e.want === 'on' ? 'on' : '', p: 1 };
-  const mk = rPpl(r).filter(p => pend.has('ms|' + k + '|' + p) && !hasStay(st, p));
-  if (!mk.length) return { st: base };
-  if (isMineMode()) return { st: base === 'on' || mk.includes(me) ? 'on' : '', p: 1 };
-  const n = rPpl(r).filter(p => hasStay(st, p)).length + mk.length; return { st: n >= rPpl(r).length ? 'on' : 'part', p: 1 };
+  const has = p => { const m = pend.get('ms|' + k + '|' + p); return m ? m.want === 'on' : hasStay(st, p); };
+  if (!rPpl(r).some(p => pend.has('ms|' + k + '|' + p))) return { st: base };
+  if (isMineMode()) return { st: has(me) ? 'on' : '', p: 1 };
+  const n = rPpl(r).filter(has).length; return { st: n >= rPpl(r).length ? 'on' : n ? 'part' : '', p: 1 };
 }
 function stage(kind, r, p) {
   const rk = rowKey(r), key = kind + '|' + rk + (p ? '|' + p : '');
@@ -928,7 +934,7 @@ function stage(kind, r, p) {
     [...pend.keys()].filter(k => k.startsWith('m' + kind + '|' + rk + '|')).forEach(k => pend.delete(k));
     const on = kind === 't' ? tState(r) === 'on' : !!(r.stay && r.stay.status !== 'todo');
     pend.set(key, { kind, rk, mine: isMineMode(), want: on ? 'off' : 'on' });
-  } else { pend.delete(kind[1] + '|' + rk); pend.set(key, { kind, rk, p }); }
+  } else { pend.delete(kind[1] + '|' + rk); pend.set(key, { kind, rk, p, want: (kind === 'mt' ? hasTicket(r, p) : hasStay(r.stay, p)) ? 'off' : 'on' }); }
   haptic('light'); render();
 }
 function setTicket(r, mine, on) {
@@ -952,15 +958,30 @@ function setStay(r, on) {
   if (r.stay) return put('stays', r.stay.id, { ...data.stays[r.stay.id], status: on ? 'booked' : 'todo' });
   if (on) put('stays', uid(), { status: 'booked', name: 'Жильё: ' + r.to, city: r.to, checkin: r.stop?.from, checkout: r.stop?.to, who: someoneOut(r) ? r.ppl : undefined, createdAt: Date.now() });
 }
-function applyMarks(r, kind, ps) {
-  if (kind === 'ms') { const st = r.stay && data.stays[r.stay.id]; if (!st) return 0; const add = ps.filter(p => !hasStay(r.stay, p)); if (!add.length) return 0;
-    put('stays', r.stay.id, { ...st, who: [...new Set([...(st.who || []), ...add])] }); return add.length; }
-  const add = ps.filter(p => !hasTicket(r, p)); if (!add.length) return 0;
-  const own = r.own || r.legs, booked = own.filter(t => t.status !== 'todo' && t.who?.length);
-  if (booked.length) booked.forEach(t => put('transport', t.id, { ...data.transport[t.id], who: [...new Set([...(t.who || []), ...add])] }));
-  else if (own.length) own.forEach(t => put('transport', t.id, { ...data.transport[t.id], status: 'booked', who: add }));
-  else put('transport', uid(), { type: 'plane', from: r.from, to: r.kind === 'home' ? 'Домой' : r.to, depart: r.date, status: 'booked', who: add, createdAt: Date.now() });
-  return add.length;
+// отметки по людям: es = [{ p, want: 'on' | 'off' }]
+function applyMarks(r, kind, es) {
+  const all = people();
+  if (kind === 'ms') {
+    const st = r.stay && data.stays[r.stay.id]; if (!st) return 0;
+    const add = es.filter(e => e.want === 'on' && !hasStay(r.stay, e.p)).map(e => e.p), rem = es.filter(e => e.want === 'off' && hasStay(r.stay, e.p)).map(e => e.p);
+    if (!add.length && !rem.length) return 0;
+    const who = [...new Set([...(st.who?.length ? st.who : rem.length ? all : []), ...add])].filter(p => !rem.includes(p));
+    put('stays', r.stay.id, who.length || !rem.length ? { ...st, who: who.length >= all.length ? [] : who } : { ...st, who: [], status: 'todo' });
+    return add.length + rem.length;
+  }
+  const add = es.filter(e => e.want === 'on' && !hasTicket(r, e.p)).map(e => e.p), rem = es.filter(e => e.want === 'off' && hasTicket(r, e.p)).map(e => e.p);
+  if (!add.length && !rem.length) return 0;
+  const own = r.own || r.legs, booked = own.filter(t => t.status !== 'todo'), listed = booked.filter(t => t.who?.length);
+  const upd = (t, patch) => put('transport', t.id, { ...data.transport[t.id], ...patch });
+  // снять: убираем человека из каждого купленного билета этой строки, где он числится
+  if (rem.length) booked.filter(t => !t.who?.length || t.who.some(p => rem.includes(p))).forEach(t => { const w = (t.who?.length ? t.who : all).filter(p => !rem.includes(p)); upd(t, w.length ? { who: w } : { who: [], status: 'todo' }); t.who = w; if (!w.length) t.status = 'todo'; });
+  if (add.length) {
+    const tgt = listed.filter(t => t.status !== 'todo' && t.who?.length);
+    if (tgt.length) tgt.forEach(t => upd(t, { who: [...new Set([...t.who, ...add])] }));
+    else if (own.some(t => t.status === 'todo')) own.filter(t => t.status === 'todo').forEach(t => upd(t, { status: 'booked', who: add }));
+    else if (!booked.length) put('transport', uid(), { type: 'plane', from: r.from, to: r.kind === 'home' ? 'Домой' : r.to, depart: r.date, status: 'booked', who: add, createdAt: Date.now() });
+  }
+  return add.length + rem.length;
 }
 function savePend() {
   const v0 = view; view = 'all'; let rows; try { rows = summaryRows(); } finally { view = v0; }
@@ -970,7 +991,7 @@ function savePend() {
     const r = byKey.get(e.rk); if (!r) continue;
     if (e.kind === 't') { const cur = tState(r, e.mine); if (e.want === 'on' ? cur !== 'on' : cur !== '') { setTicket(r, e.mine, e.want === 'on'); n++; } }
     else if (e.kind === 's') { const on = !!(r.stay && r.stay.status !== 'todo'); if ((e.want === 'on') !== on) { setStay(r, e.want === 'on'); n++; } }
-    else { const k = e.kind + '|' + e.rk; if (!marks.has(k)) marks.set(k, { r, kind: e.kind, ps: [] }); marks.get(k).ps.push(e.p); }
+    else { const k = e.kind + '|' + e.rk; if (!marks.has(k)) marks.set(k, { r, kind: e.kind, ps: [] }); marks.get(k).ps.push({ p: e.p, want: e.want }); }
   }
   for (const m of marks.values()) n += applyMarks(m.r, m.kind, m.ps);
   pend.clear(); haptic('medium'); toast(n ? `Сохранено изменений: ${n}` : 'Всё уже было так, менять нечего'); render();
@@ -978,8 +999,9 @@ function savePend() {
 function coverHtml(kind, r, i) {
   const ppl = rPpl(r); if (!ppl.length) return '';
   const ok = p => kind === 't' ? hasTicket(r, p) : hasStay(r.stay, p), k = (kind === 't' ? 'mt|' : 'ms|') + rowKey(r) + '|';
-  if (ppl.every(ok)) return `<span class="muted">${kind === 't' ? 'Билет' : 'Жильё'} есть у ${someoneOut(r) ? esc(ppl.join(', ')) : 'всех'} ✓</span>`;
-  return `<div class="cov"><span class="muted" style="min-width:52px">${kind === 't' ? 'Билет:' : 'Жильё:'}</span>${ppl.map(p => ok(p) ? `<span class="pc">${av(p)}${esc(p)} ✓</span>` : `<button class="pc ${pend.has(k + p) ? 'pend' : 'no'}" data-mark="${kind}|${i}|${esc(p)}" title="Отметить, что есть">${av(p)}${esc(p)} ${pend.has(k + p) ? '✓' : '✗'}</button>`).join('')}</div>`;
+  if (ppl.length === 1) return `<span class="muted">${kind === 't' ? 'Билет' : 'Жильё'}: ${ok(ppl[0]) ? 'есть ✓' : 'пока нет'}</span>`;
+  return `<div class="cov"><span class="muted" style="min-width:52px">${kind === 't' ? 'Билет у:' : 'Жильё у:'}</span>${ppl.map(p => { const m = pend.get(k + p), on = m ? m.want === 'on' : ok(p);
+    return `<button class="pc ${m ? 'pend' : on ? '' : 'no'}" data-mark="${kind}|${i}|${esc(p)}" title="${on ? 'Нажми, чтобы снять' : 'Нажми, чтобы отметить'}">${av(p)}${on ? esc(p) + ' ✓' : '＋ ' + esc(p)}</button>`; }).join('')}</div>`;
 }
 const stayNights = r => r.stay?.checkin && r.stay?.checkout ? daysBetween(r.stay.checkin, r.stay.checkout) : (r.stop?.from && r.stop?.to ? daysBetween(r.stop.from, r.stop.to) : 0);
 const tagIcon = r => { const l = relevant(r.legs)[0] || r.legs[0]; return (TYPES[l?.type] || TYPES.plane)[0]; };
@@ -989,7 +1011,7 @@ function renderSummary() {
   const tOk = tRows.filter(r => tState(r) === 'on').length, sOk = sRows.filter(r => sState(r) === 'on').length;
   const noStay = sRows.filter(r => !(r.stay && r.stay.status !== 'todo')).reduce((a, r) => a + stayNights(r), 0);
   let h = `<div class="sumhead" style="justify-content:flex-end"><span>билеты <b>${tOk}/${tRows.length}</b> · жильё <b>${sOk}/${sRows.length}</b>${noStay ? ` · без жилья <b style="color:var(--warn)">${nights(noStay)}</b>` : ''}</span></div>
-    <div class="card" style="padding:8px 8px 4px"><div class="shd"><span>дата</span><span>маршрут</span><span>билет</span><span>жильё</span></div>`;
+    <div class="card" style="padding:8px 8px 4px"><div class="shint">Нажми метку, чтобы отметить; строку, чтобы раскрыть</div><div class="shd"><span>дата</span><span>маршрут</span><span>билет</span><span>жильё</span></div>`;
   sumRows.forEach((r, i) => {
     if (r.kind === 'mark') { h += markHtml(r); return; }
     const n = stayNights(r), open = openRow === i;
@@ -1000,7 +1022,7 @@ function renderSummary() {
       <span>${se ? `<button class="tgb ${se.st} ${se.p ? 'pend' : ''}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>` : (r.zero ? '<span class="tgn">1 день</span>' : r.cont ? '<span class="tgn">там же</span>' : '')}</span></div>`;
     if (open) h += rowDetail(r, i);
   });
-  h += `<div class="sfoot"><button class="chip link" data-reded="">✎ Изменить маршрут</button><button class="chip" data-add="stops">＋ Город</button></div></div><div class="muted" style="text-align:center;margin-top:8px">${view === 'mine' && me ? 'Показано твоё. Переключи «Все», чтобы видеть, у кого чего нет' : '<span class="tgb on" style="display:inline-flex;width:auto;padding:0 6px;height:20px">у всех</span> <span class="tgb part" style="display:inline-flex;width:auto;padding:0 6px;height:20px">3/5 не у всех</span> <span class="tgb" style="display:inline-flex;width:auto;padding:0 6px;height:20px">ни у кого</span>'}<br>Нажми на метку, чтобы отметить билет или жильё, потом «Сохранить».<br>Нажми на строку: подробности и кто без билета</div>`;
+  h += `<div class="sfoot"><button class="chip link" data-reded="">✎ Изменить маршрут</button><button class="chip" data-add="stops">＋ Город</button></div></div><div class="muted" style="text-align:center;margin-top:8px">${view === 'mine' && me ? 'Показано твоё. Переключи «Все», чтобы видеть, у кого чего нет' : '<span class="tgb on" style="display:inline-flex;width:auto;padding:0 6px;height:20px">у всех</span> <span class="tgb part" style="display:inline-flex;width:auto;padding:0 6px;height:20px">3/5 не у всех</span> <span class="tgb" style="display:inline-flex;width:auto;padding:0 6px;height:20px">ни у кого</span>'}</div>`;
   return h;
 }
 function markHtml(r) {
@@ -1013,7 +1035,7 @@ function rowDetail(r, i) {
   let h = `<div class="sx">`;
   const legs = mergeLegs(r.legs);
   const rk = rowKey(r), pt = pend.get('t|' + rk), ps = pend.get('s|' + rk);
-  if (pt || ps) h += `<div class="ln pendn">● Не сохранено: ${[pt && (pt.want === 'on' ? 'билет будет отмечен' : 'отметка билета будет снята'), ps && (ps.want === 'on' ? 'жильё будет отмечено' : 'отметка жилья будет снята')].filter(Boolean).join(', ')}. Нажми «Сохранить» внизу</div>`;
+  if (pt || ps) h += `<div class="ln pendn">● Не сохранено: ${[pt && (pt.want === 'on' ? (pt.mine ? 'билет будет отмечен у тебя' : `билет будет отмечен у всех (${rPpl(r).length})`) : (pt.mine ? 'твой билет будет снят' : 'отметка билета будет снята у всех')), ps && (ps.want === 'on' ? 'жильё будет отмечено' : 'отметка жилья будет снята')].filter(Boolean).join(', ')}. Нажми «Сохранить» внизу</div>`;
   if (r.kind !== 'extra') h += `<div class="ln">${coverHtml('t', r, i)}</div>`;
   if (r.kind !== 'home' && r.stay && r.stay.status !== 'todo') h += `<div class="ln">${coverHtml('s', r, i)}</div>`;
   if (r.kind !== 'extra') {
@@ -1044,6 +1066,8 @@ const dPpl = s => s.who?.length ? people().filter(p => s.who.includes(p)) : peop
 const edWho = s => { const w = dPpl(s); return w.length < people().length ? w : undefined; };
 const sameWho = (a, b) => (a || []).slice().sort().join() === (b || []).slice().sort().join();
 const edOrig = s => data.stops?.[s.id];
+// город, разделённый вылазкой: «хвост» помнит исходную запись, конец города считается по последней части
+const edEnd = s => ed.st.filter(x => !x._del && x._root === s.id && x.to).reduce((m, x) => x.to > m ? x.to : m, s.to);
 const edById = el => ed.st.find(x => x.id === el.closest('[data-ed]').dataset.ed);
 const edSorted = () => ed.st.filter(s => !s._del).sort((a, b) => (a.from || '').localeCompare(b.from || '') || (a.to || a.from || '').localeCompare(b.to || b.from || '') || (a.createdAt || 0) - (b.createdAt || 0));
 function edSnap(tag) { if (tag && ed.tag === tag) return; ed.tag = tag || null; const j = JSON.stringify(ed.st); if (ed.hist[ed.hist.length - 1] !== j) ed.hist.push(j); if (ed.hist.length > 40) ed.hist.shift(); }
@@ -1079,29 +1103,43 @@ function edDiff(s) {
 }
 const edCount = () => ed.st.filter(s => Object.keys(edDiff(s)).length).length;
 function edIssues() {
-  const m = new Map(), add = (s, lvl, t) => { if (!m.has(s.id)) m.set(s.id, []); m.get(s.id).push([lvl, t]); };
+  const m = new Map(), add = (s, lvl, t) => { if (!m.has(s.id)) m.set(s.id, []); if (!m.get(s.id).some(x => x[1] === t)) m.get(s.id).push([lvl, t]); };
+  const day = t => (t || '').slice(0, 10), shares = (t, o) => !t.who?.length || t.who.some(p => stopPpl(o).includes(p));
   edSorted().forEach(s => {
     if (!(s.city || '').trim()) add(s, 'err', 'Нет названия города');
     if (!s.from) return add(s, 'err', 'Укажи дату приезда');
     if (!s.to) return add(s, 'err', 'Укажи дату отъезда');
     if (s.to < s.from) return add(s, 'err', 'Отъезд раньше приезда');
-    edNb(s).next.forEach(b => { if (!b.from) return; const g = daysBetween(s.to, b.from);
+    const nb = edNb(s);
+    // сосед перестал помещаться: объясняем это и на этой карточке, а не только на соседней
+    [...nb.prev, ...nb.next].forEach(x => { if (x.from && x.to && x.to < x.from) add(s, 'err', `Рядом не помещается «${x.city}»: приезд туда ${fmtD(x.from)}, а отъезд оттуда ${fmtD(x.to)}. Поправь даты «${x.city}» или нажми «↩ Шаг назад»`); });
+    nb.next.forEach(b => { if (!b.from || (b.to && b.to < b.from)) return;
+      const g = daysBetween(s.to, b.from);
       if (g < 0) add(s, 'err', `Пересекается с «${b.city}»: отсюда уезжаем ${fmtD(s.to)}, а туда приезжаем уже ${fmtD(b.from)}. Поправь одну из дат`);
       else if (g > 1) add(s, 'warn', `Между «${s.city}» и «${b.city}» пробел ${g} ${plural(g, 'день', 'дня', 'дней')}: ${fmtD(s.to)} → ${fmtD(b.from)}`); });
+    // купленное и забронированное само не двигается: показываем, что перестало совпадать с новыми датами
+    const o = edOrig(s); if (!o || !o.from || !o.to) return; const end = edEnd(s);
+    if (o.from === s.from && o.to === end) return;
+    list('stays').filter(x => x.status !== 'todo' && x.checkin && x.checkout && stayInStop(x, { ...o, id: s.id }) && (x.checkin < s.from || x.checkout > end))
+      .forEach(x => add(s, 'warn', `Бронь «${x.name}» на ${fmtD(x.checkin)} – ${fmtD(x.checkout)} не попадает в новые даты. Сама она не изменится, поправь её в «Бронях»`));
+    if (o.to !== end) list('transport').filter(t => t.status !== 'todo' && normCity(t.from) === normCity(o.city) && day(t.depart) === o.to && shares(t, o))
+      .forEach(t => add(s, 'warn', `Билет ${cityOfPt(t.from)} → ${cityOfPt(t.to)} куплен на ${fmtD(o.to)}, а отъезд теперь ${fmtD(end)}`));
+    if (o.from !== s.from) list('transport').filter(t => t.status !== 'todo' && normCity(t.to) === normCity(o.city) && day(t.arrive || t.depart) === o.from && shares(t, o))
+      .forEach(t => add(s, 'warn', `Билет ${cityOfPt(t.from)} → ${cityOfPt(t.to)} куплен на ${fmtD(o.from)}, а приезд теперь ${fmtD(s.from)}`));
   });
   return m;
 }
 const edIssHtml = l => (l || []).map(([lvl, t]) => `<div class="${lvl}">${lvl === 'err' ? '⛔' : '⚠️'} ${esc(t)}</div>`).join('');
 const edNightsTxt = s => s.from && s.from === s.to ? 'на один день' : s.from && s.to && s.to > s.from ? nights(daysBetween(s.from, s.to)) : '';
 function edCard(s, iss, i, last) {
-  const d = edDiff(s), zero = !!(s.from && s.from === s.to), ppl = people(), w = dPpl(s);
-  const who = ppl.length > 1 ? `<div class="edw">${ppl.map(p => `<button type="button" class="edp ${w.includes(p) ? 'on' : ''}" data-edwho="${esc(p)}" title="${esc(p)}">${av(p)}</button>`).join('')}<span class="muted">${w.length === ppl.length ? 'едут все' : 'едут: ' + esc(w.join(', '))}</span></div>` : '';
-  const a = ed.add;
+  const d = edDiff(s), zero = !!(s.from && s.from === s.to), ppl = people(), w = dPpl(s), a = ed.add;
+  const who = ppl.length > 1 ? `<span class="edwl ${d.who ? 'chg' : ''}"><span class="muted">Едут${w.length === ppl.length ? ' все' : ''}:</span>${ppl.map(p => `<button type="button" class="edp ${w.includes(p) ? 'on' : ''}" data-edwho="${esc(p)}" title="${esc(p)}" aria-label="${esc(p)}: ${w.includes(p) ? 'едет' : 'не едет'}">${av(p)}</button>`).join('')}</span>` : '';
   return `<div class="edc ${d.isNew ? 'new' : ''}" data-ed="${s.id}" style="--c:${CCOL[i % CCOL.length]}">
     <div class="edh"><input class="edn ${d.city ? 'chg' : ''}" data-f="city" value="${esc(s.city || '')}" placeholder="Город" autocomplete="off"><span class="edm" data-edm>${edNightsTxt(s)}</span><button type="button" class="x" data-eddel title="Убрать из маршрута" aria-label="Убрать ${esc(s.city || '')}">✕</button></div>
-    ${zero ? `<div class="edd one"><label><span>Дата</span><input type="date" data-f="day" class="${d.from || d.to ? 'chg' : ''}" value="${esc(s.from || '')}"></label><button type="button" class="chip" data-edday>🛏 С ночёвкой</button></div>`
+    ${zero ? `<div class="edd one"><label><span>Дата</span><input type="date" data-f="day" class="${d.from || d.to ? 'chg' : ''}" value="${esc(s.from || '')}"></label></div>`
       : `<div class="edd"><label><span>Приезд</span><input type="date" data-f="from" class="${d.from ? 'chg' : ''}" value="${esc(s.from || '')}"></label><label><span>Отъезд</span><input type="date" data-f="to" class="${d.to ? 'chg' : ''}" value="${esc(s.to || '')}"></label></div>`}
-    ${who}<div class="edi" data-edi>${edIssHtml(iss.get(s.id))}</div>${d.isNew ? '<span class="edb">новый</span>' : ''}
+    <div class="edw">${who}<button type="button" class="edz" data-edday="${zero ? 1 : 0}">${zero ? '🛏 Сделать с ночёвкой' : '☀ На один день'}</button></div>
+    <div class="edi" data-edi>${edIssHtml(iss.get(s.id))}</div>${d.isNew ? '<span class="edb">новый</span>' : ''}
   </div>` + (a && a.after === s.id ? edAddHtml() : `<div class="edins ${last ? 'last' : ''}"><button type="button" data-edins="${s.id}" aria-label="Добавить город после ${esc(s.city || '')}">${last ? '＋ Добавить город' : '＋'}</button></div>`);
 }
 function edAddHtml() {
@@ -1115,16 +1153,16 @@ function edAddHtml() {
     <div class="actions" style="margin-top:4px"><button type="button" class="btn" data-edaddx>Отмена</button><button class="btn pri">Добавить</button></div></form>`;
 }
 function edFoot(iss) {
-  const n = edCount(), errs = [...iss.values()].flat().filter(x => x[0] === 'err').length;
-  $('#sheetFoot').innerHTML = `<div class="edbar"><div class="grow"><b>${n ? 'Изменений: ' + n : 'Изменений нет'}</b>${errs ? '<div class="edw2">Исправь отмеченное ⛔</div>' : ''}</div>
-    ${ed.hist.length ? '<button type="button" class="chip" data-edundo>↩ Шаг назад</button>' : ''}<button type="button" class="btn" data-edx>${n ? 'Отмена' : 'Закрыть'}</button><button type="button" class="btn pri" data-edsave ${!n || errs ? 'disabled' : ''}>Сохранить</button></div>`;
+  const n = edCount(), errs = [...iss.values()].flat().filter(x => x[0] === 'err').length, adding = !!ed.add;
+  $('#sheetFoot').innerHTML = `<div class="edbar"><div class="grow"><b>${n ? 'Изменений: ' + n : 'Изменений нет'}</b>${adding ? '<div class="edw2" style="color:var(--hint)">Сначала «Добавить» или «Отмена» у нового города</div>' : errs ? '<div class="edw2">Исправь отмеченное ⛔</div>' : ''}</div>
+    ${ed.hist.length ? '<button type="button" class="chip" data-edundo>↩ Шаг назад</button>' : ''}<button type="button" class="btn" data-edx>${n ? 'Отмена' : 'Закрыть'}</button><button type="button" class="btn pri" data-edsave ${!n || errs || adding ? 'disabled' : ''}>Сохранить</button></div>`;
 }
 function edPaint(focusId) {
   const box = $('#red'); if (!box || !ed) return;
-  const iss = edIssues(), L = edSorted(), a = ed.add, gone = ed.st.filter(s => s._del);
+  const iss = edIssues(), L = edSorted(), a = ed.add, gone = ed.st.filter(s => s._del && !s._merged), glued = ed.st.filter(s => s._del && s._merged);
   box.innerHTML = (a && !a.after ? edAddHtml() : '') + L.map((s, i) => edCard(s, iss, i, i === L.length - 1)).join('')
     + (!L.length && !a ? `<div class="edins last"><button type="button" data-edins="">＋ Добавить первый город</button></div>` : '')
-    + (gone.length ? `<div class="muted" style="margin:10px 4px 0;font-size:12.5px">Убраны: ${gone.map(s => esc(s.city)).join(', ')}. Вернуть можно кнопкой «↩ Шаг назад».</div>` : '');
+    + (gone.length || glued.length ? `<div class="muted" style="margin:10px 4px 0;font-size:12.5px">${gone.length ? 'Убраны: ' + gone.map(s => esc(s.city)).join(', ') + '. ' : ''}${glued.length ? [...new Set(glued.map(s => '«' + esc(s.city) + '»'))].join(', ') + ' снова одним блоком. ' : ''}Вернуть можно кнопкой «↩ Шаг назад».</div>` : '');
   edFoot(iss);
   const f = box.querySelector('[data-edaddform]'); if (f) f.querySelector('[data-edprev]').innerHTML = edPreview(f);
   if (focusId) setTimeout(() => box.querySelector(`.edc[data-ed="${focusId}"]`)?.scrollIntoView({ block: 'center' }), 60);
@@ -1153,7 +1191,9 @@ function edPreview(f) {
   if (!from || !to) return 'Укажи даты';
   if (to < from) return '<span style="color:var(--red)">Отъезд раньше приезда</span>';
   const { X, prev, next } = edPlace(from, to, ed.add.after);
-  if (X) return from === to ? `☀ ${fmtD(from)} едем из «${esc(X.city)}» в «${nm}» и в тот же день обратно. Жильё в «${esc(X.city)}» остаётся.` : `«${esc(X.city)}» разделится на две части: до ${fmtD(from)} и снова с ${fmtD(to)}.`;
+  if (X && from === to) return `☀ ${fmtD(from)} едем из «${esc(X.city)}» в «${nm}» и в тот же день обратно. Жильё в «${esc(X.city)}» остаётся.`;
+  if (X) { const bk = list('stays').filter(x => x.status !== 'todo' && normCity(x.city) === normCity(X.city) && x.checkin && x.checkout && x.checkin < to && x.checkout > from);
+    return `«${esc(X.city)}» разделится на две части: до ${fmtD(from)} и снова с ${fmtD(to)}. Билеты из «${esc(X.city)}» дальше остаются на своих датах.` + (bk.length ? ` Бронь ${bk.map(x => '«' + esc(x.name) + '»').join(', ')} не меняется: на эти ночи жильё будет в двух местах.` : ''); }
   const out = [`Встанет ${prev ? 'после «' + esc(prev.city) + '»' : 'в начало маршрута'}${next ? ' и перед «' + esc(next.city) + '»' : ', последним перед дорогой домой'}.`];
   if (prev && prev.to > from) out.push(`«${esc(prev.city)}» сократится до ${fmtD(from)}.`);
   if (next && next.from < to) out.push(next.to > to ? `«${esc(next.city)}» начнётся ${fmtD(to)} вместо ${fmtD(next.from)}.` : `<span style="color:var(--red)">Наезжает на «${esc(next.city)}», поправь даты.</span>`);
@@ -1174,7 +1214,7 @@ function edAddSubmit(f) {
   const { X, prev, next, who } = edPlace(from, to, ed.add.after);
   const n = { id: uid(), city, country: X?.country, from, to, who: who?.length ? [...who] : undefined, createdAt: Date.now(), _new: 1 };
   if (X) { // вылазка из города: он делится на «до» и «после»
-    ed.st.push(n, JSON.parse(JSON.stringify({ id: uid(), city: X.city, country: X.country, lat: X.lat, lng: X.lng, mapUrl: X.mapUrl, who: X.who, from: to, to: X.to, createdAt: Date.now() + 1, _new: 1 })));
+    ed.st.push(n, JSON.parse(JSON.stringify({ id: uid(), city: X.city, country: X.country, lat: X.lat, lng: X.lng, mapUrl: X.mapUrl, who: X.who, from: to, to: X.to, createdAt: Date.now() + 1, _new: 1, _root: X._root || X.id })));
     X.to = from;
   } else { if (prev && prev.to > from) prev.to = from; if (next && next.from < to && next.to > to) next.from = to; ed.st.push(n); }
   ed.add = null; edPaint(n.id);
@@ -1185,7 +1225,7 @@ function edDel(s) {
   drop(s);
   if (prev.length === 1 && next.length === 1 && prev[0].to === s.from && next[0].from === s.to) { const a = prev[0], b = next[0];
     if (normCity(a.city) === normCity(b.city) && sameWho(edWho(a), edWho(b))) { // «Бали + Бали» снова один город
-      const keep = edOrig(a) || !edOrig(b) ? a : b, from = a.from, to = b.to; drop(keep === a ? b : a); keep.from = from; keep.to = to; }
+      const keep = edOrig(a) || !edOrig(b) ? a : b, gone = keep === a ? b : a, from = a.from, to = b.to; gone._merged = 1; drop(gone); keep.from = from; keep.to = to; }
     else if (s.to > s.from) a.to = s.to;   // ночи убранного города достаются предыдущему
   }
   edPaint();
@@ -1199,10 +1239,10 @@ function edToggleWho(s, p) {
 function edStayPlan() {
   const stays = list('stays'), next = new Map(stays.map(x => [x.id, { ...x }]));
   const isPlain = x => x.status === 'todo' && !x.link && !x.confirmation && !Object.keys(x.files || {}).length && !list('options').some(o => o.parent === 'stays:' + x.id);
-  // 1) настоящее жильё (бронь, ссылка), стоявшее встык с датами города, двигается вместе с ним
-  ed.st.forEach(s => { const o = edOrig(s); if (!o || s._del || (o.from === s.from && o.to === s.to)) return;
-    stays.filter(x => !isPlain(x) && stayInStop(x, { ...o, id: s.id })).forEach(x => { const y = next.get(x.id);
-      const ci = x.checkin === o.from ? s.from : y.checkin, co = x.checkout === o.to ? s.to : y.checkout;
+  // 1) незабронированное жильё со ссылкой или вариантами, стоявшее встык с датами города, двигается вместе с ним; брони не трогаем
+  ed.st.forEach(s => { const o = edOrig(s); if (!o || s._del) return; const end = edEnd(s); if (o.from === s.from && o.to === end) return;
+    stays.filter(x => x.status === 'todo' && !isPlain(x) && stayInStop(x, { ...o, id: s.id })).forEach(x => { const y = next.get(x.id);
+      const ci = x.checkin === o.from ? s.from : y.checkin, co = x.checkout === o.to ? end : y.checkout;
       if (ci && co && ci < co) { y.checkin = ci; y.checkout = co; } }); });
   // 2) пустые заготовки «ищем жильё» раскладываем заново по итоговому маршруту в затронутых городах
   const touched = new Set(), L = edSorted();
@@ -1231,9 +1271,9 @@ function edSave() {
   const n = edCount(); if (!n) return;
   const stayOps = edStayPlan(), stopOps = [], legOps = [];
   // некупленные билеты-заготовки (без номера и брони) переезжают на новую дату отъезда из города; купленные не трогаем
-  ed.st.forEach(s => { const o = edOrig(s); if (!o || s._del || !o.to || o.to === s.to) return;
+  ed.st.forEach(s => { const o = edOrig(s); if (!o || s._del || !o.to) return; const end = edEnd(s); if (o.to === end) return;
     list('transport').filter(t => t.status === 'todo' && !t.number && !t.confirmation && !Object.keys(t.files || {}).length && normCity(t.from) === normCity(o.city) && (t.depart || '').slice(0, 10) === o.to && (!t.who?.length || t.who.some(p => stopPpl(o).includes(p))))
-      .forEach(t => legOps.push([t.id, { ...data.transport[t.id], depart: s.to + (t.depart || '').slice(10), arrive: undefined }])); });
+      .forEach(t => legOps.push([t.id, { ...data.transport[t.id], depart: end + (t.depart || '').slice(10), arrive: undefined }])); });
   ed.st.forEach(s => { const o = edOrig(s), d = edDiff(s); if (!Object.keys(d).length) return;
     if (s._del) return stopOps.push(['del', s.id]);
     const f = { city: s.city.trim(), from: s.from, to: s.to, who: edWho(s) };
@@ -1245,9 +1285,9 @@ function edSave() {
   haptic('medium'); toast(`Маршрут сохранён. Изменений: ${n}`);
 }
 function edGuard() {
-  const n = ed ? edCount() : 0;
-  if (!n) { ed = null; return closeSheet(); }
-  confirmBox(`Закрыть без сохранения? Несохранённых изменений: ${n}`, ok => { if (ok) { ed = null; closeSheet(); } });
+  const n = ed ? edCount() : 0, typing = !!(ed?.add && (ed.add.city || '').trim());
+  if (!n && !typing) { ed = null; return closeSheet(); }
+  confirmBox(n ? `Закрыть без сохранения? Несохранённых изменений: ${n}` : 'Закрыть? Новый город не добавлен', ok => { if (ok) { ed = null; closeSheet(); } });
 }
 function openRouteEd(o = {}) {
   if (pend.size) return toast('Сначала сохрани или отмени отметки в сводке');
@@ -1266,11 +1306,13 @@ function openRouteEd(o = {}) {
   sh.addEventListener('change', e => { if (!ed) return; const t = e.target; if (!t.matches('.edc input[type=date][data-f]') || !t.value) return;
     const s = edById(t), v = t.value, f = t.dataset.f; edSnap();
     if (f === 'day') edSetDates(s, v, v); else if (f === 'from') edSetDates(s, v, s.to); else edSetDates(s, s.from, v);
-    edSoft(); });
+    // если город стал поездкой на день или перестал ей быть, карточку надо перерисовать целиком
+    const flip = edSorted().some(x => { const c = document.querySelector(`.edc[data-ed="${x.id}"]`); return c && !!c.querySelector('[data-f="day"]') !== !!(x.from && x.from === x.to); });
+    flip ? edPaint() : edSoft(); });
   sh.addEventListener('click', e => { if (!ed) return; const T = e.target; let b;
     if ((b = T.closest('[data-eddel]'))) return edDel(edById(b));
     if ((b = T.closest('[data-edins]'))) return edOpenAdd(b.dataset.edins);
-    if ((b = T.closest('[data-edday]'))) { const s = edById(b); edSnap(); edSetDates(s, s.from, addDays(s.from, 1)); return edPaint(); }
+    if ((b = T.closest('[data-edday]'))) { const s = edById(b); if (!s.from) return toast('Сначала укажи дату'); edSnap(); b.dataset.edday === '1' ? edSetDates(s, s.from, addDays(s.from, 1)) : edSetDates(s, s.from, s.from); return edPaint(); }
     if ((b = T.closest('[data-edwho]'))) return edToggleWho(edById(b), b.dataset.edwho);
     if (T.closest('[data-edundo]')) return edUndo();
     if (T.closest('[data-edx]')) return edGuard();
@@ -1505,7 +1547,7 @@ function renderBook() {
 /* --- места --- */
 function renderPlaces() {
   const all = list('places');
-  const cities = stopsSorted().map(s => s.city);
+  const cities = cityNames();
   $('#placesTop').innerHTML = `<div class="seg"><button data-pview="list" class="${placesView === 'list' ? 'on' : ''}">☰ Список</button><button data-pview="map" class="${placesView === 'map' ? 'on' : ''}">🗺 Карта маршрута</button></div>
     ${placesView === 'list' ? `<div class="hscroll"><button class="chip ${!placeCity ? 'on' : ''}" data-pcity="">Все</button>${cities.map(c => `<button class="chip ${placeCity === c ? 'on' : ''}" data-pcity="${esc(c)}">${esc(c)}</button>`).join('')}</div>` : ''}`;
   $('#mapBox').style.display = placesView === 'map' ? '' : 'none';
@@ -1579,7 +1621,7 @@ function renderNotes() {
   const todos = list('todo').sort((a, b) => (a.done ? 1 : 0) - (b.done ? 1 : 0) || (a.createdAt || 0) - (b.createdAt || 0));
   let h = `<div class="seg"><button data-nseg="notes" class="${notesSeg === 'notes' ? 'on' : ''}">💬 Советы и ссылки</button><button data-nseg="todo" class="${notesSeg === 'todo' ? 'on' : ''}">✓ Дела · ${todos.filter(x => !x.done).length}</button></div>`;
   if (notesSeg === 'notes') {
-    h += `<div class="hscroll"><button class="chip ${!noteCity ? 'on' : ''}" data-ncity="">Все</button>${stopsSorted().map(s => `<button class="chip ${noteCity === s.city ? 'on' : ''}" data-ncity="${esc(s.city)}">${esc(s.city)}</button>`).join('')}</div>`;
+    h += `<div class="hscroll"><button class="chip ${!noteCity ? 'on' : ''}" data-ncity="">Все</button>${cityNames().map(c => `<button class="chip ${noteCity === c ? 'on' : ''}" data-ncity="${esc(c)}">${esc(c)}</button>`).join('')}</div>`;
     h += composerHtml() + (notes.map(noteCard).join('') || `<div class="empty"><b>💬</b>Делитесь здесь полезным: ссылками, лайфхаками, контактами, курсом валют…</div>`);
   } else {
     h += `<form class="composer" data-todoform><div class="row" style="margin:0"><input name="text" placeholder="Новое дело…" autocomplete="off" style="background:none;border:0"><button class="btn pri" style="flex:0 0 auto;padding:9px 16px">＋</button></div></form>
@@ -1855,9 +1897,11 @@ document.addEventListener('click', e => {
   const geo = T.closest('[data-geo]'); if (geo) { e.preventDefault(); navigator.geolocation?.getCurrentPosition(p => { $('#' + geo.dataset.geo).value = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`; }, () => toast('Не удалось получить геопозицию')); return; }
   const dn = T.closest('[data-done]'); if (dn) { e.stopPropagation(); const p = data.places[dn.dataset.done]; put('places', dn.dataset.done, { ...p, done: p.done ? undefined : true }); haptic(); return; }
   const td = T.closest('[data-todo]'); if (td) { const x = data.todo[td.dataset.todo]; put('todo', td.dataset.todo, { ...x, done: x.done ? undefined : true }); haptic(); return; }
-  const dt = T.closest('[data-deltodo]'); if (dt) { del('todo', dt.dataset.deltodo); return; }
+  const dt = T.closest('[data-deltodo]'); if (dt) { const id = dt.dataset.deltodo; confirmBox('Удалить это дело?', ok => { if (ok) { del('todo', id); toast('Удалено'); } }); return; }
   const rv = T.closest('[data-rview]'); if (rv) { routeView = rv.dataset.rview; ls.set('trip-rview', routeView); haptic('soft'); renderRoute(); return; }
-  const tt = T.closest('[data-tt]'); if (tt) { e.stopPropagation(); const r = sumRows[+tt.dataset.tt]; if (r) stage('t', r); return; }
+  const tt = T.closest('[data-tt]'); if (tt) { e.stopPropagation(); const i = +tt.dataset.tt, r = sumRows[i]; if (!r) return;
+    if (!isMineMode() && tState(r) === 'part' && !pend.has('t|' + rowKey(r)) && !T.closest('.sx')) { if (openRow !== i) { openRow = i; render(); } haptic('soft'); toast('Билет не у всех: отметь ниже, у кого он есть'); return; }
+    stage('t', r); return; }
   const stg = T.closest('[data-st]'); if (stg) { e.stopPropagation(); const r = sumRows[+stg.dataset.st]; if (r) stage('s', r); return; }
   const re = T.closest('[data-reded]'); if (re) { e.preventDefault(); openRouteEd({ focus: re.dataset.reded || undefined }); return; }
   if (T.closest('[data-close]')) { closeSheet(); return; }
@@ -1918,7 +1962,7 @@ document.addEventListener('submit', e => {
   if (f.matches('[data-addp]')) { e.preventDefault(); const p = f.elements.p.value.trim(); if (!p) return; if (people().includes(p)) return toast('Уже есть');
     putMeta({ ...data.meta, people: [...people(), p] }); toast(`${p} добавлен(а)`); setTimeout(() => openMe(!me), 300); return; }
   if (f.matches('[data-staylink]')) { e.preventDefault(); const u = f.elements.url.value.trim(); if (!/^https?:\/\//.test(u)) return toast('Нужна ссылка, начинается с https://');
-    const id = f.dataset.staylink; put('stays', id, { ...data.stays[id], link: u, status: 'booked' }); haptic('medium'); toast('Ссылка сохранена'); return; }
+    const id = f.dataset.staylink; put('stays', id, { ...data.stays[id], link: u, status: 'booked' }); haptic('medium'); toast('Ссылка сохранена, жильё отмечено как забронированное'); return; }
   if (f.matches('[data-splitform]')) { e.preventDefault(); const id = f.dataset.splitform, st = data.stays[id], d = f.elements.d.value;
     if (!d || d <= st.checkin || d >= st.checkout) return toast('Дата должна быть внутри проживания');
     put('stays', id, { ...st, checkout: d });
