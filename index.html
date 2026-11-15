@@ -210,6 +210,7 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .tgn{display:block;text-align:center;font-size:11px;color:var(--hint);white-space:nowrap}
 .pc.pend{border:1.5px solid var(--btn);background:color-mix(in srgb,var(--btn) 12%,transparent);cursor:pointer}
 .sx .pendn{color:var(--btn);font-weight:600;font-size:12.5px}
+.gapc{display:flex;align-items:center;gap:10px;background:none;box-shadow:none;border:1.5px dashed color-mix(in srgb,var(--warn) 55%,transparent)}
 .shint{font-size:11.5px;color:var(--hint);padding:0 4px 6px}
 .sfoot{display:flex;gap:6px;flex-wrap:wrap;padding:8px 4px 6px}
 .edc{position:relative;background:var(--bg2);border-radius:16px;padding:8px 10px 10px 12px;border-left:4px solid var(--c)}
@@ -1547,7 +1548,15 @@ function renderBook() {
   const trs = list('transport').filter(visible).sort((a, b) => (a.depart || '9').localeCompare(b.depart || '9'));
   const sts = list('stays').filter(visible).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
   let h = `<div class="seg"><button data-bseg="tickets" class="${bookSeg === 'tickets' ? 'on' : ''}">🎫 Билеты · ${trs.length}</button><button data-bseg="stays" class="${bookSeg === 'stays' ? 'on' : ''}">🏨 Жильё · ${sts.length}</button></div>`;
-  if (bookSeg === 'tickets') h += trs.length ? trs.map(ticketCard).join('') : `<div class="empty"><b>🎫</b>${view === 'mine' && me ? 'У тебя пока нет билетов.<br>Добавь свои через ＋' : 'Билетов пока нет'}</div>`;
+  if (bookSeg === 'tickets') {
+    // переезды из маршрута, на которые ещё никто не завёл билет: показываем их тут же, по датам
+    const gaps = stopsSorted().length ? summaryRows().filter(r => (r.kind === 'move' || r.kind === 'home') && !r.legs.length && r.from && r.from !== 'Старт') : [];
+    const items = [...trs.map(t => [(t.depart || '9').slice(0, 10), 1, ticketCard(t)]), ...gaps.map(r => [r.date || '9', 0,
+      `<div class="card tap gapc" data-addleg="${esc(r.from)}|${esc(r.to)}|${esc(r.date || '')}"><div class="grow"><b>❔ Билета нет: ${esc(r.from)} → ${esc(r.to)}</b><div class="muted">${fmtDW(r.date)}${someoneOut(r) ? ' · ' + esc(r.ppl.join(', ')) : ''}</div></div><span class="chip link">＋ Добавить</span></div>`])]
+      .sort((a, b) => a[0].localeCompare(b[0]) || a[1] - b[1]);
+    h += items.length ? (gaps.length ? `<div class="muted" style="margin:0 4px 8px;font-size:12.5px">Здесь билеты, которые кто-то добавил, и переезды из маршрута, на которые билета ещё нет (${gaps.length}).</div>` : '') + items.map(x => x[2]).join('')
+      : `<div class="empty"><b>🎫</b>${view === 'mine' && me ? 'У тебя пока нет билетов.<br>Добавь свои через ＋' : 'Билетов пока нет'}</div>`;
+  }
   else h += sts.length ? sts.map(stayCard).join('') : `<div class="empty"><b>🏨</b>Жилья пока нет</div>`;
   $('#tab-book').innerHTML = h;
 }
