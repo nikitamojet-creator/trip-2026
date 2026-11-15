@@ -39,6 +39,17 @@ button{font:inherit;color:inherit;cursor:pointer}
 .hero h1{margin:0;font-size:22px;letter-spacing:-.02em;line-height:1.15}
 .hero .sub{opacity:.9;font-size:13.5px;margin-top:3px}
 .me-btn{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:999px;padding:4px 10px 4px 4px;font-size:14px;font-weight:600;backdrop-filter:blur(6px);white-space:nowrap}
+.me-btn.inv{margin-left:auto;padding:4px 9px;font-size:16px}.me-btn.inv+.me-btn{margin-left:0}
+body.homing .hero,body.homing main,body.homing nav,body.homing #fab{display:none!important}
+#home{padding:28px 16px 60px;max-width:560px;margin:0 auto}
+.hh{text-align:center;margin:10px 0 22px}.hh .lg{width:72px;height:72px;border-radius:22px;margin:0 auto 12px;display:grid;place-items:center;font-size:38px;background:linear-gradient(135deg,var(--g1),var(--g2) 50%,var(--g3));box-shadow:var(--shadow)}
+.hh h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}.hh p{margin:0;color:var(--hint);font-size:14.5px;line-height:1.4}
+.tripc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border:0;border-radius:16px;padding:14px;margin-bottom:8px;box-shadow:var(--shadow);color:var(--text);font:inherit}
+.tripc .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--soft);flex:none}
+.tripc b{display:block;font-size:16px}.tripc .x{margin-left:auto}
+.lnk{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13px;word-break:break-all;margin:10px 0;user-select:all}
+.jl{display:flex;gap:8px}.jl input{flex:1;min-width:0;height:46px;border-radius:14px;border:0;background:var(--card);color:var(--text);padding:0 14px;font-size:15px;box-shadow:var(--shadow)}.jl .btn{flex:none;padding:0 18px}
+.warnc{border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);color:var(--warn);margin-bottom:14px}
 .me-btn .av{width:28px;height:28px;font-size:13px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 .hero-row{display:flex;align-items:center;gap:12px;margin-top:10px;position:relative;z-index:1}
 .ready{position:relative;z-index:1;margin-top:0;font-size:12px;display:flex;justify-content:space-between;opacity:.95}
@@ -284,7 +295,7 @@ details.adv>summary::-webkit-details-marker{display:none}
 <header class="hero"><div class="wrap">
   <div class="hero-top">
     <div class="grow"><h1 id="title">Поездка</h1><div class="sub" id="subtitle"></div></div>
-    <button class="me-btn" id="meBtn"></button>
+    <button class="me-btn inv" id="invBtn" title="Пригласить">👥</button><button class="me-btn" id="meBtn"></button>
   </div>
   <div class="hero-row"><div class="seg-hero" id="viewSeg"><button data-view="mine">Моё</button><button data-view="all">Все</button></div>
     <div class="grow"><div class="ready"><span id="readyLabel"></span><span id="sync"></span></div><div class="bar"><i id="readyBar" style="width:0"></i></div></div></div>
@@ -308,6 +319,7 @@ details.adv>summary::-webkit-details-marker{display:none}
   <button data-tab="notes"><b>💬</b>Заметки</button>
 </div></nav>
 
+<div id="home" hidden></div>
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet"></div>
 <div class="toast" id="toast"></div>
@@ -342,6 +354,38 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 function haptic(type = 'light') { try { tg?.HapticFeedback?.impactOccurred(type); } catch {} }
 const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
+/* ---------------- какая поездка открыта ---------------- */
+// Поездку открывает секретная ссылка: ?t=<id> в браузере или t.me/<бот>?startapp=<id> в Telegram.
+// id длинный и случайный, список поездок в базе не читается, поэтому чужую поездку не найти.
+const TRIP_RE = /^[A-Za-z0-9_-]{16,64}$/;
+const BOT = CFG.bot || '';
+const qs = new URLSearchParams(location.search);
+const cloud = inTG && tg.isVersionAtLeast?.('6.9') ? tg.CloudStorage : null;
+function pickTrip() {
+  if (qs.has('home')) return '';
+  const c = [qs.get('t'), tg?.initDataUnsafe?.start_param].find(x => x && TRIP_RE.test(x));
+  if (c) return c;
+  if (!CFG.firebase && CFG.tripId) return CFG.tripId; // локальный режим без базы
+  const last = ls.get('trip-last'); return last && TRIP_RE.test(last) ? last : '';
+}
+const TRIP = pickTrip();
+const tripUrl = id => location.origin + location.pathname + '?t=' + id;
+const tgUrl = id => BOT ? `https://t.me/${BOT}?startapp=${id}` : tripUrl(id);
+const knownTrips = () => { try { return JSON.parse(ls.get('trips-known')) || []; } catch { return []; } };
+function saveKnown(l) { const s = JSON.stringify(l.slice(0, 30)); ls.set('trips-known', s); try { cloud?.setItem('trips', s); } catch {} }
+function rememberTrip(id, title, dates) {
+  if (!TRIP_RE.test(id)) return;
+  const l = knownTrips().filter(x => x.id !== id); l.unshift({ id, title: title || 'Поездка', dates: dates || '', at: Date.now() });
+  saveKnown(l); ls.set('trip-last', id);
+}
+function forgetTrip(id) { saveKnown(knownTrips().filter(x => x.id !== id)); if (ls.get('trip-last') === id) ls.set('trip-last', ''); }
+function syncCloudTrips() {
+  return new Promise(ok => { if (!cloud) return ok();
+    try { cloud.getItem('trips', (e, v) => { try { if (!e && v) { const m = new Map(); [...JSON.parse(v), ...knownTrips()].forEach(x => { const o = m.get(x.id); if (!o || (x.at || 0) > (o.at || 0)) m.set(x.id, x); }); ls.set('trips-known', JSON.stringify([...m.values()].sort((a, b) => (b.at || 0) - (a.at || 0)))); } } catch {} ok(); }); } catch { ok(); } });
+}
+function newTripId() { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789', b = crypto.getRandomValues(new Uint8Array(22)); return [...b].map(x => a[x % a.length]).join(''); }
+const goTrip = id => { location.href = location.pathname + (id ? '?t=' + id : '?home=1'); };
+
 function parseCoords(s) {
   if (!s) return null; s = String(s).trim();
   const m = s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || s.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) ||
@@ -373,7 +417,8 @@ function guessMe() {
   }
   return '';
 }
-let me = ls.get('trip-me') || '';
+const ME_KEY = 'trip-me-' + (TRIP || 'none');
+let me = ls.get(ME_KEY) || '';
 let view = ls.get('trip-view') || 'mine';
 const isMine = it => !it.who || !it.who.length || it.who.includes(me);
 const visible = it => view === 'all' || !me || isMine(it);
@@ -431,7 +476,7 @@ const SCHEMA = {
 };
 
 /* ---------------- data / storage ---------------- */
-const CACHE = 'trip-cache-' + (CFG.tripId || 'local');
+const CACHE = 'trip-cache-' + (TRIP || 'none');
 let data = { meta: {} };
 let mode = 'local', online = false, fb = null;
 const SEED_V = 2;
@@ -486,24 +531,28 @@ async function getFile(id) {
 }
 function removeFile(id) { if (mode === 'fb') fb.remove(fb.ref(fb.db, `${fb.root}/files/${id}`)); else delete data.files?.[id]; }
 
+async function loadFb() {
+  const v = '10.12.2';
+  const [{ initializeApp }, dbm] = await Promise.all([
+    import(`https://www.gstatic.com/firebasejs/${v}/firebase-app.js`),
+    import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`)]);
+  return { db: dbm.getDatabase(initializeApp(CFG.firebase)), dbm };
+}
 async function initStore() {
+  if (!TRIP) { await syncCloudTrips(); return renderHome(); }
   const cached = loadCache();
   if (cached) data = cached;
   if (CFG.firebase) {
     try {
-      const v = '10.12.2';
-      const [{ initializeApp }, dbm] = await Promise.all([
-        import(`https://www.gstatic.com/firebasejs/${v}/firebase-app.js`),
-        import(`https://www.gstatic.com/firebasejs/${v}/firebase-database.js`)]);
-      const app = initializeApp(CFG.firebase);
-      const db = dbm.getDatabase(app);
-      fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, root: `trips/${CFG.tripId}` };
+      const { db, dbm } = await loadFb();
+      fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, root: `trips/${TRIP}` };
       mode = 'fb'; delete data.files;
       dbm.onValue(dbm.ref(db, '.info/connected'), s => { online = !!s.val(); renderHeader(); });
       let raf = 0; const loaded = new Set();
       for (const sec of SECS) dbm.onValue(dbm.ref(db, `${fb.root}/${sec}`), snap => {
         data[sec] = snap.val() || (sec === 'meta' ? null : {});
-        if (sec === 'meta' && !data.meta) { putMeta(seedData().meta); return; }
+        if (sec === 'meta' && !data.meta) { forgetTrip(TRIP); ls.set(CACHE, ''); syncCloudTrips().then(() => renderHome('Поездка по этой ссылке не найдена. Может, ссылка обрезалась? Попроси прислать её ещё раз.')); return; }
+        if (sec === 'meta') rememberTrip(TRIP, data.meta.title, data.meta.start ? `${fmtD(data.meta.start)} — ${fmtD(data.meta.end)}` : '');
         loaded.add(sec);
         clearTimeout(raf); raf = setTimeout(() => { saveCache(); render(); if (loaded.size === SECS.length) askMeOnce(); }, 10);
       }, err => toast('Нет доступа к базе: ' + err.code));
@@ -511,6 +560,53 @@ async function initStore() {
   } else if (!cached) { data = seedData(); saveCache(); }
   if (!data.meta) data.meta = seedData().meta;
   render(); if (cached) askMeOnce();
+  if (qs.has('invite')) { history.replaceState(null, '', location.pathname + '?t=' + TRIP); setTimeout(openInvite, 600); }
+}
+
+/* ---------------- стартовый экран: мои поездки ---------------- */
+function renderHome(msg) {
+  document.body.classList.add('homing'); tg?.BackButton?.hide?.();
+  const l = knownTrips();
+  const h = $('#home'); h.hidden = false;
+  h.innerHTML = `<div class="hh"><div class="lg">🧭</div><h1>Путеводитель для поездки</h1><p>Маршрут, билеты, жильё и заметки всей компании в одном месте. Каждый видит своё и может дополнять.</p></div>
+    ${msg ? `<div class="card warnc">${esc(msg)}</div>` : ''}
+    <div class="h2">Мои поездки</div>
+    ${l.length ? l.map(x => `<button class="tripc" data-open="${esc(x.id)}"><span class="ic">✈️</span><span class="grow"><b>${esc(x.title)}</b><span class="muted">${esc(x.dates || '')}</span></span><span class="x" data-forget="${esc(x.id)}" title="Убрать из списка">×</span></button>`).join('')
+      : `<div class="muted" style="padding:0 4px 12px">Пока пусто. Создай поездку и позови друзей ссылкой. Или открой ссылку-приглашение, которую тебе прислали.</div>`}
+    <button class="btn pri" data-newtrip style="width:100%;margin-top:6px">＋ Новая поездка</button>
+    <div class="h2" style="margin-top:22px">Есть ссылка от друзей?</div><form data-joinlink class="jl"><input name="u" placeholder="Вставь ссылку-приглашение" autocomplete="off"><button class="btn pri">Открыть</button></form>
+    <div class="muted" style="text-align:center;margin-top:22px;font-size:12.5px">Доступ к поездке только по ссылке. Кто её знает, тот может смотреть и редактировать, поэтому кидай её только своим.</div>`;
+}
+function openNewTrip() {
+  const nm = tg?.initDataUnsafe?.user?.first_name || '';
+  openSheet(`<form id="ntForm"><h2>✈️ Новая поездка</h2>
+    <label class="f"><span>Название</span><input name="title" placeholder="Например: Азия 2027" required autocomplete="off"></label>
+    <div class="two"><label class="f"><span>Начало</span><input type="date" name="start"></label><label class="f"><span>Конец</span><input type="date" name="end"></label></div>
+    <label class="f"><span>Как тебя зовут</span><input name="me" value="${esc(nm)}" required autocomplete="off"></label>
+    <label class="f"><span>Кто ещё едет (через запятую, можно потом)</span><input name="others" placeholder="Аня, Петя" autocomplete="off"></label>
+    <div class="actions"><button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri" id="saveBtn">Создать</button></div></form>`);
+  $('#cancelBtn').onclick = closeSheet;
+  $('#ntForm').onsubmit = async e => { e.preventDefault(); const f = e.target.elements;
+    const my = f.me.value.trim(), ppl = [...new Set([my, ...f.others.value.split(',').map(x => x.trim()).filter(Boolean)])];
+    const id = newTripId(), meta = clean({ title: f.title.value.trim(), start: f.start.value, end: f.end.value, people: ppl, seed: SEED_V, createdAt: Date.now(), createdBy: my });
+    const b = $('#saveBtn'); b.disabled = true; b.textContent = 'Создаю…';
+    try {
+      if (CFG.firebase) { const { db, dbm } = await loadFb(); await dbm.set(dbm.ref(db, `trips/${id}/meta`), meta); }
+      else ls.set('trip-cache-' + id, JSON.stringify({ meta }));
+    } catch (err) { toast('Не получилось создать: ' + (err.code || err.message)); b.disabled = false; b.textContent = 'Создать'; return; }
+    ls.set('trip-me-' + id, my); rememberTrip(id, meta.title, meta.start ? `${fmtD(meta.start)} — ${fmtD(meta.end)}` : '');
+    location.href = location.pathname + '?t=' + id + '&invite=1'; };
+}
+function openInvite() {
+  const link = tgUrl(TRIP), web = tripUrl(TRIP), title = data.meta?.title || 'Поездка';
+  openSheet(`<h2>👥 Позвать в поездку</h2>
+    <div class="muted">Отправь ссылку в общий чат и закрепи её. По ней путеводитель откроется прямо в Telegram.</div>
+    <div class="lnk">${esc(link)}</div>
+    <div class="actions"><button class="btn" data-copy="${esc(link)}">📋 Копировать</button><button class="btn pri" id="shareTg">Отправить в Telegram</button></div>
+    ${BOT ? `<details class="adv" style="margin-top:14px"><summary>Ссылка для браузера ▾</summary><div class="lnk">${esc(web)}</div><button class="chip" data-copy="${esc(web)}">📋 Копировать</button></details>` : ''}
+    <div class="muted" style="margin-top:14px;font-size:12.5px">⚠️ Кто знает ссылку, может смотреть и редактировать поездку, включая коды броней. Не публикуй её в открытых местах.</div>
+    <div class="h2">Участники</div><div class="muted" style="margin:0 4px">${esc(people().join(', ') || 'пока никого')} · <a href="#" data-openme>изменить</a></div>`);
+  $('#shareTg').onclick = () => { const u = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(`Наша поездка «${title}»: маршрут, билеты, жильё`)}`; inTG ? tg.openTelegramLink(u) : window.open(u, '_blank'); };
 }
 function askMeOnce() {
   if (me || askMeOnce._done || !people().length) return;
@@ -1355,13 +1451,14 @@ function openMe(first) {
     <div class="sec">${people().map(p => `<div class="prow">${av(p)}<div class="grow">${esc(p)}${p === me ? ' <span class="muted">(это ты)</span>' : ''}</div><button class="x" data-rmp="${esc(p)}" title="Убрать">×</button></div>`).join('')}
       <form class="prow" data-addp><span class="av" style="--c:var(--hint)">＋</span><input name="p" placeholder="Добавить участника" autocomplete="off" style="background:none;border:0;padding:6px 0"><button class="chip link">Добавить</button></form></div>
     ${first ? '' : `<div class="h2">Поездка</div>
+    <div class="btns" style="margin-bottom:8px"><button class="chip link" data-invite>👥 Позвать друзей</button><button class="chip" data-home>🗂 Мои поездки</button></div>
     <div class="sec"><div class="ev" data-meta><div class="ic">✈️</div><div class="grow">${esc(m.title || 'Поездка')}<div class="muted">${fmtD(m.start)} → ${fmtD(m.end)} · ${esc(people().join(', '))}</div></div>✎</div></div>
     <div class="h2">Данные</div>
     <div class="muted" style="margin:0 4px 8px">${mode === 'fb' ? `Общая база · ${online ? 'онлайн' : 'офлайн'}` : 'Только в этом браузере'}</div>
     <div class="btns"><button class="chip" id="exp">⬇️ Скачать копию</button><button class="chip" id="expCopy">📋 Копировать JSON</button><label class="chip">⬆️ Загрузить<input type="file" id="imp" accept=".json,application/json" hidden></label></div>`}`);
 }
 function setMe(p, silent) {
-  me = p; ls.set('trip-me', p);
+  me = p; ls.set(ME_KEY, p);
   closeSheet(); render(); if (!silent) toast('Привет, ' + p + '!');
 }
 function openMetaForm() {
@@ -1392,6 +1489,12 @@ function addMenu() {
 function go(t) { tab = t; ls.set('trip-tab', t); window.scrollTo(0, 0); haptic('soft'); render(); }
 document.addEventListener('click', e => {
   const T = e.target;
+  const fg = T.closest('[data-forget]'); if (fg) { e.stopPropagation(); forgetTrip(fg.dataset.forget); renderHome(); return; }
+  const op = T.closest('[data-open]'); if (op) { goTrip(op.dataset.open); return; }
+  if (T.closest('[data-newtrip]')) { openNewTrip(); return; }
+  if (T.closest('[data-invite]')) { closeSheet(); setTimeout(openInvite, 250); return; }
+  if (T.closest('[data-home]')) { goTrip(''); return; }
+  if (T.closest('[data-openme]')) { e.preventDefault(); closeSheet(); setTimeout(() => openMe(false), 250); return; }
   const a = T.closest('a.ext');
   if (a) { e.stopPropagation(); if (inTG) { e.preventDefault(); const u = a.href; /^https:\/\/t\.me\//.test(u) ? tg.openTelegramLink(u) : tg.openLink(u); } return; }
   if (T.closest('a[href^="tel:"]')) { e.stopPropagation(); return; }
@@ -1425,7 +1528,7 @@ document.addEventListener('click', e => {
   const mt = T.closest('[data-myticket]'); if (mt) { e.stopPropagation(); openMyTicket(mt.dataset.myticket); return; }
   const lk = T.closest('[data-like]'); if (lk) { e.stopPropagation(); if (!me) return openMe(true); const p = lk.dataset.like; confirmBox(`Отметить тебя на всех билетах, которые есть у ${p}?`, ok => ok && joinLike(p)); return; }
   const js = T.closest('[data-joinstop]'); if (js) { if (!me) return openMe(true); openJoin(js.dataset.joinstop); return; }
-  const rp = T.closest('[data-rmp]'); if (rp) { const p = rp.dataset.rmp; confirmBox(`Убрать ${p} из участников? Его билеты и заметки останутся.`, ok => { if (!ok) return; putMeta({ ...data.meta, people: people().filter(x => x !== p) }); if (me === p) { me = ''; ls.set('trip-me', ''); } setTimeout(() => openMe(false), 300); }); return; }
+  const rp = T.closest('[data-rmp]'); if (rp) { const p = rp.dataset.rmp; confirmBox(`Убрать ${p} из участников? Его билеты и заметки останутся.`, ok => { if (!ok) return; putMeta({ ...data.meta, people: people().filter(x => x !== p) }); if (me === p) { me = ''; ls.set(ME_KEY, ''); } setTimeout(() => openMe(false), 300); }); return; }
   const ao = T.closest('[data-addopt]'); if (ao) { e.stopPropagation(); openForm('options', null, { parent: ao.dataset.addopt }); return; }
   const eo = T.closest('[data-editopt]'); if (eo) { e.stopPropagation(); openForm('options', eo.dataset.editopt); return; }
   const pk = T.closest('[data-pick]'); if (pk) {
@@ -1478,6 +1581,8 @@ document.addEventListener('submit', e => {
     put('stays', id, { ...st, checkout: d });
     put('stays', uid(), { status: 'todo', name: f.elements.name.value.trim() || ('Жильё 2: ' + (st.city || '')), city: st.city, checkin: d, checkout: st.checkout, who: st.who, createdAt: Date.now() });
     closeSheet(); haptic('medium'); toast('Разделено на два жилья'); return; }
+  if (f.matches('[data-joinlink]')) { e.preventDefault(); const v = f.elements.u.value.trim(), m = v.match(/(?:[?&](?:t|startapp)=)([A-Za-z0-9_-]{16,64})/) || v.match(/^([A-Za-z0-9_-]{16,64})$/);
+    if (m) goTrip(m[1]); else toast('Не похоже на ссылку-приглашение'); return; }
   if (f.matches('[data-todoform]')) { e.preventDefault(); const v = f.elements.text.value.trim(); if (v) { put('todo', uid(), { text: v, createdAt: Date.now() }); f.elements.text.value = ''; } }
 });
 document.addEventListener('change', e => {
@@ -1486,6 +1591,7 @@ document.addEventListener('change', e => {
 });
 $('#nav').onclick = e => { const b = e.target.closest('button[data-tab]'); if (b) go(b.dataset.tab); };
 $('#meBtn').onclick = () => openMe(false);
+$('#invBtn').onclick = () => openInvite();
 $('#fab').onclick = () => {
   if (tab === 'book') return openForm(bookSeg === 'stays' ? 'stays' : 'transport', null, { status: 'booked', ...(bookSeg !== 'stays' && me && view === 'mine' ? { who: [me] } : {}) });
   if (tab === 'places') return openForm('places', null, placeCity ? { city: placeCity } : {});

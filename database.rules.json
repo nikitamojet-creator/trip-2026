@@ -1,0 +1,17 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "trips": {
+      "$trip": {
+        ".read": "$trip.length >= 16 && $trip.length <= 64",
+        ".write": "$trip.length >= 16 && $trip.length <= 64",
+        "files": {
+          "$file": {
+            ".validate": "newData.child('data').isString() && newData.child('data').val().length < 6000000"
+          }
+        }
+      }
+    }
+  }
+}
