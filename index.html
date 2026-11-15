@@ -291,7 +291,7 @@ details.adv>summary::-webkit-details-marker{display:none}
 .person{border:2px solid transparent;background:var(--bg2);border-radius:18px;padding:14px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600}
 .person .av{width:48px;height:48px;font-size:19px}
 .person.on{border-color:var(--btn)}
-.toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:rgba(20,18,30,.9);color:#fff;padding:9px 16px;border-radius:12px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);width:max-content;max-width:calc(100vw - 32px);text-align:center;background:rgba(20,18,30,.9);color:#fff;padding:9px 16px;border-radius:12px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .hint-s{font-size:12px;color:var(--hint);margin-top:4px}
 .srow{display:grid;grid-template-columns:44px minmax(0,1fr) 42px 52px;gap:6px;align-items:center;min-height:38px;padding:0 4px;border-bottom:1px solid var(--line);cursor:pointer}
@@ -1031,6 +1031,11 @@ function markHtml(r) {
   if (r.t === 'end') return `<div class="smk"></div>`;
   return `<div class="smk lane" style="--lc:${LCOL[r.lane % LCOL.length]}">${avs(r.ppl, 6)}<span>${esc(r.ppl.join(', '))}</span></div>`;
 }
+// варианты жилья в строке сводки: ссылка открывается, «Берём» делает её бронью (с подтверждением)
+function rowOptions(stayId) {
+  return list('options').filter(o => o.parent === 'stays:' + stayId).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)).map(o => `<div class="ln"><a class="chip link ext" href="${esc(o.url)}" target="_blank" rel="noopener">🔗 ${esc(host(o.url))}${o.price ? ' · ' + esc(o.price) : ''}</a>${o.by ? `<span class="muted">${esc(o.by)}</span>` : ''}<button class="chip" data-pick="${o.id}" style="margin-left:auto">✅ Берём</button></div>`).join('');
+}
+const normUrl = v => { v = (v || '').trim(); return /^https?:\/\//i.test(v) ? v : /^[\w-]+(\.[\w-]+)+(\/|$)/.test(v) ? 'https://' + v : ''; };
 function rowDetail(r, i) {
   let h = `<div class="sx">`;
   const legs = mergeLegs(r.legs);
@@ -1049,10 +1054,13 @@ function rowDetail(r, i) {
   else if (r.kind !== 'home') {
     const st = r.stay;
     if (st) {
-      h += `<div class="ln"><span data-edit="stays:${st.id}" style="cursor:pointer">🛏 <b>${esc(st.name)}</b> <span class="muted">${fmtD(st.checkin)} – ${fmtD(st.checkout)}</span> ✎</span>${extA(st.link, '🔗 Бронь')}${filesChips(st)}</div>`;
-      if (!st.link) h += `<form data-staylink="${st.id}"><input name="url" type="url" placeholder="Вставь ссылку на жильё" autocomplete="off"><button class="btn pri">OK</button></form>`;
+      const todo = st.status === 'todo';
+      h += `<div class="ln"><span data-edit="stays:${st.id}" style="cursor:pointer">🛏 <b>${esc(st.name)}</b> <span class="muted">${fmtD(st.checkin)} – ${fmtD(st.checkout)}</span> ✎</span>${extA(st.link, todo ? '🔗 Ссылка' : '🔗 Бронь')}${filesChips(st)}</div>`;
+      if (todo) h += rowOptions(st.id) + `<form data-stayopt="${st.id}"><input name="url" inputmode="url" placeholder="Вставь ссылку на вариант жилья" autocomplete="off"><button class="btn pri">＋ Вариант</button></form>`;
+      else if (!st.link) h += `<form data-staylink="${st.id}"><input name="url" inputmode="url" placeholder="Вставь ссылку на бронь" autocomplete="off"><button class="btn pri">OK</button></form>`;
       if (st.checkin && st.checkout && daysBetween(st.checkin, st.checkout) > 1) h += `<div class="ln"><button class="chip" data-split="${st.id}">✂️ Разделить на 2 жилья</button></div>`;
-    } else h += `<div class="ln"><span class="muted">Жильё не указано.</span><button class="chip link" data-st="${i}">＋ отметить / добавить</button></div>`;
+    } else h += `<div class="ln"><span class="muted">Жильё не указано.</span><button class="chip link" data-st="${i}">＋ отметить, что есть</button></div>
+      <form data-stayopt="" data-ri="${i}"><input name="url" inputmode="url" placeholder="Или вставь ссылку на вариант" autocomplete="off"><button class="btn pri">＋ Вариант</button></form>`;
   }
   if (r.kind === 'home' && someoneOut(r) && r.at) h += `<div class="ln"><span class="muted">${esc(r.ppl.join(', '))} ${r.ppl.length > 1 ? 'заканчивают' : 'заканчивает'} поездку в ${esc(r.at.city)}</span>${r.at.id !== stopsSorted().pop()?.id ? `<button class="chip" data-unleave="${r.at.id}|${esc(r.ppl.join(','))}">↩ Едут дальше со всеми</button>` : ''}</div>`;
   if (r.kind === 'move' && r.stop) h += `<div class="ln"><button class="chip link" data-city="${r.stop.id}">Всё про ${esc(r.stop.city)} →</button><button class="chip" data-reded="${r.stop.id}">✎ Даты и маршрут</button>${r.ppl.length > 1 ? `<button class="chip" data-leave="${r.stop.id}">🔀 Кто-то едет отдельно</button>` : ''}</div>`;
@@ -1961,8 +1969,12 @@ document.addEventListener('submit', e => {
   }
   if (f.matches('[data-addp]')) { e.preventDefault(); const p = f.elements.p.value.trim(); if (!p) return; if (people().includes(p)) return toast('Уже есть');
     putMeta({ ...data.meta, people: [...people(), p] }); toast(`${p} добавлен(а)`); setTimeout(() => openMe(!me), 300); return; }
-  if (f.matches('[data-staylink]')) { e.preventDefault(); const u = f.elements.url.value.trim(); if (!/^https?:\/\//.test(u)) return toast('Нужна ссылка, начинается с https://');
-    const id = f.dataset.staylink; put('stays', id, { ...data.stays[id], link: u, status: 'booked' }); haptic('medium'); toast('Ссылка сохранена, жильё отмечено как забронированное'); return; }
+  if (f.matches('[data-stayopt]')) { e.preventDefault(); const u = normUrl(f.elements.url.value); if (!u) return toast('Не похоже на ссылку');
+    let id = f.dataset.stayopt;
+    if (!id) { const r = sumRows[+f.dataset.ri]; if (!r?.stop) return; id = uid(); put('stays', id, { status: 'todo', name: 'Жильё: ' + r.to, city: r.to, checkin: r.stop.from, checkout: r.stop.to, who: someoneOut(r) ? r.ppl : undefined, createdAt: Date.now() }); }
+    put('options', uid(), { parent: 'stays:' + id, url: u, by: author() || undefined, createdAt: Date.now() }); haptic('medium'); toast('Вариант добавлен. Бронью он станет после «Берём»'); return; }
+  if (f.matches('[data-staylink]')) { e.preventDefault(); const u = normUrl(f.elements.url.value); if (!u) return toast('Не похоже на ссылку');
+    const id = f.dataset.staylink; put('stays', id, { ...data.stays[id], link: u }); haptic('medium'); toast('Ссылка на бронь сохранена'); return; }
   if (f.matches('[data-splitform]')) { e.preventDefault(); const id = f.dataset.splitform, st = data.stays[id], d = f.elements.d.value;
     if (!d || d <= st.checkin || d >= st.checkout) return toast('Дата должна быть внутри проживания');
     put('stays', id, { ...st, checkout: d });
