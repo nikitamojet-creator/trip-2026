@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Поездка</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Поездка">
+<meta name="theme-color" content="#ff7a59">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -49,6 +54,7 @@ body.homing .hero,body.homing main,body.homing nav,body.homing #fab{display:none
 .tripc b{display:block;font-size:16px}.tripc .x{margin-left:auto}
 .lnk{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13px;word-break:break-all;margin:10px 0;user-select:all}
 .jl{display:flex;gap:8px}.jl input{flex:1;min-width:0;height:46px;border-radius:14px;border:0;background:var(--card);color:var(--text);padding:0 14px;font-size:15px;box-shadow:var(--shadow)}.jl .btn{flex:none;padding:0 18px}
+.banner.off{background:color-mix(in srgb,var(--warn) 14%,var(--card));color:var(--text)}
 .warnc{border:1px solid color-mix(in srgb,var(--warn) 50%,transparent);color:var(--warn);margin-bottom:14px}
 .me-btn .av{width:28px;height:28px;font-size:13px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
 .hero-row{display:flex;align-items:center;gap:12px;margin-top:10px;position:relative;z-index:1}
@@ -478,24 +484,39 @@ const SCHEMA = {
 /* ---------------- data / storage ---------------- */
 const CACHE = 'trip-cache-' + (TRIP || 'none');
 let data = { meta: {} };
-let mode = 'local', online = false, fb = null;
+let mode = 'local', online = false, fb = null, fbStarted = false;
+setTimeout(() => { fbStarted = true; if (TRIP && !document.body.classList.contains('homing')) try { render(); } catch {} }, 2500); // не пугаем баннером, пока идёт подключение
 const SEED_V = 2;
 function seedData() { return { meta: { title:'Поездка', start:'', end:'', people: CFG.people || [], seed: SEED_V } }; }
 function clean(o) { const r = {}; for (const [k, v] of Object.entries(o)) if (v !== undefined && v !== '' && v !== null && k !== 'id') r[k] = v; return r; }
 function saveCache() { ls.set(CACHE, JSON.stringify(data)); }
 function loadCache() { try { return JSON.parse(ls.get(CACHE)); } catch { return null; } }
 
+/* Правки без сети: Firebase держит их в памяти, пока приложение открыто. Чтобы они не пропали,
+   если приложение закроют, дублируем их в очередь на устройстве и досылаем при следующем запуске. */
+const PQ = 'trip-pending-' + (TRIP || 'none');
+const pq = () => { try { return JSON.parse(ls.get(PQ)) || {}; } catch { return {}; } };
+const DEL = { __del: 1 };
+function fbWrite(path, val) {
+  const q = pq(), v = val === null ? DEL : val; q[path] = v; ls.set(PQ, JSON.stringify(q));
+  const done = () => { const q2 = pq(); if (JSON.stringify(q2[path]) === JSON.stringify(v)) { delete q2[path]; ls.set(PQ, JSON.stringify(q2)); } };
+  const ref = fb.ref(fb.db, `${fb.root}/${path}`);
+  return (val === null ? fb.remove(ref) : fb.set(ref, val)).then(done, e => { done(); toast('Ошибка сохранения: ' + (e.code || e.message)); });
+}
+function replayPending() { const q = pq(); Object.entries(q).forEach(([p, v]) => fbWrite(p, v.__del ? null : v)); return Object.keys(q).length; }
+const pendingCount = () => Object.keys(pq()).length;
+
 async function put(sec, id, item) {
   item = clean({ ...item, updatedAt: Date.now(), updatedBy: author() || undefined });
-  if (mode === 'fb') return fb.set(fb.ref(fb.db, `${fb.root}/${sec}/${id}`), item).catch(e => toast('Ошибка сохранения: ' + e.code));
+  if (mode === 'fb') return fbWrite(`${sec}/${id}`, item);
   (data[sec] ||= {})[id] = item; saveCache(); render();
 }
 async function del(sec, id) {
-  if (mode === 'fb') return fb.remove(fb.ref(fb.db, `${fb.root}/${sec}/${id}`));
+  if (mode === 'fb') return fbWrite(`${sec}/${id}`, null);
   delete data[sec]?.[id]; saveCache(); render();
 }
 async function putMeta(meta) {
-  if (mode === 'fb') return fb.set(fb.ref(fb.db, `${fb.root}/meta`), clean(meta));
+  if (mode === 'fb') return fbWrite('meta', clean(meta));
   data.meta = meta; saveCache(); render();
 }
 const SECS = ['meta','stops','stays','transport','places','notes','todo','options'];
@@ -521,15 +542,28 @@ async function saveFile(f) {
   if (isPdf && f.size > 4e6) throw new Error('PDF больше 4 МБ');
   const dataUrl = isImg ? await compressImage(f) : await readAsDataURL(f);
   const id = uid(), meta = { name: f.name || 'file', type: isImg ? 'image/jpeg' : 'application/pdf', by: author() || undefined, at: Date.now() };
-  if (mode === 'fb') await fb.set(fb.ref(fb.db, `${fb.root}/files/${id}`), { data: dataUrl, ...clean(meta) });
+  if (mode === 'fb') { if (!online) throw new Error('Нет сети. Скрин можно будет прикрепить, когда появится связь'); await fb.set(fb.ref(fb.db, `${fb.root}/files/${id}`), { data: dataUrl, ...clean(meta) }); fileCachePut(id, { data: dataUrl, ...meta }); }
   else (data.files ||= {})[id] = { data: dataUrl, ...meta };
   return [id, clean(meta)];
 }
+/* скрины и PDF билетов храним на устройстве (Cache API): файлы не меняются, id уникальные */
+const FCACHE = 'files-' + (TRIP || 'none');
+async function fileCacheGet(id) { try { const m = await (await caches.open(FCACHE)).match('__f/' + id); return m ? await m.json() : null; } catch { return null; } }
+async function fileCachePut(id, f) { try { await (await caches.open(FCACHE)).put('__f/' + id, new Response(JSON.stringify(f), { headers: { 'content-type': 'application/json' } })); } catch {} }
+async function prefetchFiles() {
+  if (mode !== 'fb' || !online || prefetchFiles._busy) return; prefetchFiles._busy = 1;
+  try {
+    const ids = [...list('transport'), ...list('stays')].flatMap(x => Object.keys(x.files || {}));
+    for (const id of ids) { if (!online) break; if (await fileCacheGet(id)) continue;
+      const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`)).catch(() => null))?.val(); if (f) await fileCachePut(id, f); }
+  } finally { prefetchFiles._busy = 0; }
+}
 async function getFile(id) {
-  if (mode === 'fb') return (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`))).val();
+  if (mode === 'fb') { const c = await fileCacheGet(id); if (c) return c; if (!online) return null;
+    const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`))).val(); if (f) fileCachePut(id, f); return f; }
   return data.files?.[id];
 }
-function removeFile(id) { if (mode === 'fb') fb.remove(fb.ref(fb.db, `${fb.root}/files/${id}`)); else delete data.files?.[id]; }
+function removeFile(id) { if (mode === 'fb') { fbWrite(`files/${id}`, null); caches.open(FCACHE).then(c => c.delete('__f/' + id)).catch(() => {}); } else delete data.files?.[id]; }
 
 async function loadFb() {
   const v = '10.12.2';
@@ -547,14 +581,15 @@ async function initStore() {
       const { db, dbm } = await loadFb();
       fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, root: `trips/${TRIP}` };
       mode = 'fb'; delete data.files;
-      dbm.onValue(dbm.ref(db, '.info/connected'), s => { online = !!s.val(); renderHeader(); });
+      dbm.onValue(dbm.ref(db, '.info/connected'), s => { const was = online; online = !!s.val(); render(); if (online && !was) setTimeout(prefetchFiles, 1500); });
+      if (replayPending()) toast('Отправляю правки, сделанные без сети');
       let raf = 0; const loaded = new Set();
       for (const sec of SECS) dbm.onValue(dbm.ref(db, `${fb.root}/${sec}`), snap => {
         data[sec] = snap.val() || (sec === 'meta' ? null : {});
         if (sec === 'meta' && !data.meta) { forgetTrip(TRIP); ls.set(CACHE, ''); syncCloudTrips().then(() => renderHome('Поездка по этой ссылке не найдена. Может, ссылка обрезалась? Попроси прислать её ещё раз.')); return; }
         if (sec === 'meta') rememberTrip(TRIP, data.meta.title, data.meta.start ? `${fmtD(data.meta.start)} — ${fmtD(data.meta.end)}` : '');
         loaded.add(sec);
-        clearTimeout(raf); raf = setTimeout(() => { saveCache(); render(); if (loaded.size === SECS.length) askMeOnce(); }, 10);
+        clearTimeout(raf); raf = setTimeout(() => { saveCache(); render(); if (loaded.size === SECS.length) { askMeOnce(); if (!prefetchFiles._t) prefetchFiles._t = setTimeout(prefetchFiles, 1500); } }, 10);
       }, err => toast('Нет доступа к базе: ' + err.code));
     } catch (e) { console.error(e); toast('Нет связи, показываю сохранённое'); }
   } else if (!cached) { data = seedData(); saveCache(); }
@@ -718,7 +753,9 @@ function render() {
   document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + tab));
   $('#fab').style.display = (tab === 'places' && placesView === 'map') ? 'none' : '';
-  $('#banner').innerHTML = mode === 'local' ? `<div class="banner">Локальный режим: данные видите только вы.</div>` : '';
+  const pc = mode === 'fb' ? pendingCount() : 0;
+  $('#banner').innerHTML = mode === 'local' ? `<div class="banner">Локальный режим: данные видите только вы.</div>`
+    : !online && fbStarted ? `<div class="banner off">📴 Нет сети. Всё видно, правки сохраняются на телефоне${pc ? ` (ждут отправки: ${pc})` : ''} и уйдут, когда появится связь.</div>` : '';
 }
 
 function renderHeader() {
@@ -1384,7 +1421,7 @@ function openForm(sec, id, preset = {}) {
 async function openFile(fid) {
   openSheet(`<div class="empty">Загружаю…</div>`);
   const f = await getFile(fid).catch(() => null);
-  if (!f) { openSheet(`<div class="empty">Файл не найден</div>`); return; }
+  if (!f) { openSheet(`<div class="empty">${online || mode !== 'fb' ? 'Файл не найден' : '📴 Этот файл ещё не сохранён на телефоне. Откроется, когда появится сеть'}</div>`); return; }
   if (f.type?.includes('pdf')) {
     const blob = await (await fetch(f.data)).blob(), url = URL.createObjectURL(blob);
     openSheet(`<h2>📎 PDF${f.by ? ' · ' + esc(f.by) : ''}</h2><iframe src="${url}" style="width:100%;height:65vh;border:0;border-radius:14px;background:#fff"></iframe>
@@ -1600,6 +1637,7 @@ $('#fab').onclick = () => {
 };
 
 initStore();
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
 </html>
