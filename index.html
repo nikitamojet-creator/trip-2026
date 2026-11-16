@@ -211,6 +211,13 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .pc.pend{border:1.5px solid var(--btn);background:color-mix(in srgb,var(--btn) 12%,transparent);cursor:pointer}
 .sx .pendn{color:var(--btn);font-weight:600;font-size:12.5px}
 .gapc{display:flex;align-items:center;gap:10px;background:none;box-shadow:none;border:1.5px dashed color-mix(in srgb,var(--warn) 55%,transparent)}
+.lge{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.h2+.lge{border-top:0}
+.lge>.av{margin-top:2px}.lgh{display:flex;gap:6px;align-items:baseline;font-size:13.5px;flex-wrap:wrap}.lgh .muted{margin-left:auto;font-size:12px}
+.lgi{display:block;width:100%;text-align:left;background:none;border:0;padding:4px 0;font:inherit;font-size:13.5px;color:var(--text);line-height:1.35}
+button.lgi{cursor:pointer}.lgo{display:block;font-size:12px;color:var(--link)}
+.lgc{font-size:12.5px;color:var(--hint);margin:1px 0 0 22px}
+.lgu{margin-top:6px;font-size:12.5px;padding:5px 10px}
+.bdg{display:inline-grid;place-items:center;min-width:18px;height:18px;border-radius:9px;background:var(--red,#e5484d);color:#fff;font-size:11px;font-weight:700;padding:0 5px;margin-left:2px}
 .shint{font-size:11.5px;color:var(--hint);padding:0 4px 6px}
 .sfoot{display:flex;gap:6px;flex-wrap:wrap;padding:8px 4px 6px}
 .edc{position:relative;background:var(--bg2);border-radius:16px;padding:8px 10px 10px 12px;border-left:4px solid var(--c)}
@@ -560,18 +567,79 @@ const pendingCount = () => Object.keys(pq()).length;
 
 async function put(sec, id, item) {
   item = clean({ ...item, updatedAt: Date.now(), updatedBy: author() || undefined });
+  logItem(sec, id, data[sec]?.[id], item);
   if (mode === 'fb') return fbWrite(`${sec}/${id}`, item);
   (data[sec] ||= {})[id] = item; saveCache(); render();
 }
 async function del(sec, id) {
+  logItem(sec, id, data[sec]?.[id], null);
   if (mode === 'fb') return fbWrite(`${sec}/${id}`, null);
   delete data[sec]?.[id]; saveCache(); render();
 }
 async function putMeta(meta) {
+  logItem('meta', 'meta', data.meta, clean(meta));
   if (mode === 'fb') return fbWrite('meta', clean(meta));
   data.meta = meta; saveCache(); render();
 }
 const SECS = ['meta','stops','stays','transport','places','notes','todo','options'];
+
+/* ---------------- журнал изменений ----------------
+   Все записи одного действия (например, «Сохранить» в редакторе маршрута) собираются в одну запись журнала.
+   В записи хранится прежнее состояние каждой изменённой вещи, поэтому её можно вернуть как было. */
+const SEC_L = { stops: 'Город', stays: 'Жильё', transport: 'Билет', places: 'Место', notes: 'Заметка', todo: 'Дело', options: 'Вариант', meta: 'Поездка' };
+const FL = { city: 'город', country: 'страна', from: 'приезд', to: 'отъезд', who: 'кто', checkin: 'заезд', checkout: 'выезд', status: 'статус', name: 'название',
+  link: 'ссылка', address: 'адрес', confirmation: 'бронь', price: 'цена', paid: 'оплачено', phone: 'телефон', notes: 'заметки', type: 'тип', depart: 'отправление',
+  arrive: 'прибытие', number: 'рейс', carrier: 'перевозчик', seats: 'места', pnrs: 'коды брони', files: 'файлы', lat: 'координаты', mapUrl: 'карта', text: 'текст',
+  url: 'ссылка', day: 'день', time: 'время', cat: 'категория', done: 'сделано', title: 'название', start: 'начало', end: 'конец', people: 'участники', note: 'комментарий' };
+let logKind = '', logQ = null, logNew = 0;
+const logMine = new Map();   // записи, сделанные в этой сессии (видны в журнале сразу, даже без сети)
+const itemTitle = (sec, x) => { if (!x) return '';
+  if (sec === 'stops') return x.city || '';
+  if (sec === 'stays') return x.name || ('жильё ' + (x.city || ''));
+  if (sec === 'transport') return `${cityOfPt(x.from)} → ${cityOfPt(x.to)}${x.depart ? ', ' + fmtD(x.depart) : ''}`;
+  if (sec === 'places') return x.name || '';
+  if (sec === 'options') return host(x.url);
+  if (sec === 'meta') return x.title || 'Поездка';
+  return String(x.text || '').slice(0, 50); };
+const sameV = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+function logItem(sec, id, prev, next) {
+  if (!TRIP) return;
+  prev = prev ? clean({ ...prev }) : null;
+  const ch = [];
+  if (prev && next) for (const k of new Set([...Object.keys(prev), ...Object.keys(next)])) {
+    if (!(k in FL) || k === 'lng' || sameV(prev[k], next[k])) continue;
+    if (k === 'who' && sameV([...(prev.who || [])].sort(), [...(next.who || [])].sort())) continue;
+    ch.push([k, prev[k] ?? null, next[k] ?? null]);
+  }
+  if (prev && next && !ch.length) return;      // ничего видимого не поменялось
+  const it = { sec, id, op: !prev ? 'add' : !next ? 'del' : 'edit', t: itemTitle(sec, next || prev) };
+  if (ch.length) it.ch = ch.slice(0, 8);
+  if (prev && JSON.stringify(prev).length < 6000) it.prev = prev;
+  if (!logQ) { logQ = { kind: logKind, items: [] }; setTimeout(flushLog, 0); }
+  logQ.items.push(it);
+}
+function flushLog() {
+  const q = logQ; logQ = null; logKind = '';
+  if (!q?.items.length) return;
+  const at = Date.now(), key = 'L' + String(at).padStart(14, '0') + Math.random().toString(36).slice(2, 6);
+  const e = clean({ at, by: author() || undefined, kind: q.kind || undefined, items: q.items });
+  logMine.set(key, e);
+  if (mode === 'fb') fbWrite(`log/${key}`, JSON.parse(JSON.stringify(e)));
+  else { (data.log ||= {})[key] = e; saveCache(); }
+}
+const withLog = (kind, fn) => { if (logQ && logQ.items.length) flushLog(); logKind = kind; try { fn(); } finally { if (logQ) logQ.kind = kind; else logKind = ''; } };
+async function loadLog(n) {
+  let got = {};
+  if (mode === 'fb' && online) { try { const v = (await fb.get(fb.query(fb.ref(fb.db, `${fb.root}/log`), fb.orderByKey(), fb.limitToLast(n)))).val(); got = v || {}; } catch {} }
+  if (mode !== 'fb') got = { ...(data.log || {}) };
+  const all = { ...got }; logMine.forEach((e, k) => { all[k] ||= e; });
+  return Object.entries(all).sort((a, b) => b[0].localeCompare(a[0])).slice(0, n).map(([k, e]) => ({ ...e, key: k }));
+}
+async function checkNewLog() {
+  const seen = +(ls.get('trip-logseen-' + TRIP) || 0); if (!seen) { ls.set('trip-logseen-' + TRIP, Date.now()); return; }
+  const l = await loadLog(40); logNew = l.filter(e => e.at > seen && e.by !== author()).length; if (logNew) render();
+}
+
 async function replaceAll(d) {
   if (mode === 'fb') return Promise.all(SECS.map(k => fb.set(fb.ref(fb.db, `${fb.root}/${k}`), d[k] ?? null)));
   data = d; saveCache(); render();
@@ -631,7 +699,7 @@ async function initStore() {
   if (CFG.firebase) {
     try {
       const { db, dbm } = await loadFb();
-      fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, root: `trips/${TRIP}` };
+      fb = { db, ref: dbm.ref, set: dbm.set, get: dbm.get, remove: dbm.remove, query: dbm.query, orderByKey: dbm.orderByKey, limitToLast: dbm.limitToLast, root: `trips/${TRIP}` };
       mode = 'fb'; delete data.files;
       dbm.onValue(dbm.ref(db, '.info/connected'), s => { const was = online; online = !!s.val(); render(); if (online && !was) setTimeout(prefetchFiles, 1500); });
       if (replayPending()) toast('Отправляю правки, сделанные без сети');
@@ -641,12 +709,13 @@ async function initStore() {
         if (sec === 'meta' && !data.meta) { forgetTrip(TRIP); ls.set(CACHE, ''); syncCloudTrips().then(() => renderHome('Поездка по этой ссылке не найдена. Может, ссылка обрезалась? Попроси прислать её ещё раз.')); return; }
         if (sec === 'meta') rememberTrip(TRIP, data.meta.title, data.meta.start ? `${fmtD(data.meta.start)} — ${fmtD(data.meta.end)}` : '');
         loaded.add(sec);
-        clearTimeout(raf); raf = setTimeout(() => { saveCache(); render(); if (loaded.size === SECS.length) { askMeOnce(); if (!prefetchFiles._t) prefetchFiles._t = setTimeout(prefetchFiles, 1500); } }, 10);
+        clearTimeout(raf); raf = setTimeout(() => { saveCache(); render(); if (loaded.size === SECS.length) { askMeOnce(); if (!prefetchFiles._t) { prefetchFiles._t = setTimeout(prefetchFiles, 1500); setTimeout(checkNewLog, 2500); }; } }, 10);
       }, err => toast('Нет доступа к базе: ' + err.code));
     } catch (e) { console.error(e); toast('Нет связи, показываю сохранённое'); }
   } else if (!cached) { data = seedData(); saveCache(); }
   if (!data.meta) data.meta = seedData().meta;
   render(); if (cached) askMeOnce();
+  if (mode !== 'fb') setTimeout(checkNewLog, 500);
   if (qs.has('invite')) { history.replaceState(null, '', location.pathname + '?t=' + TRIP); setTimeout(openInvite, 600); }
 }
 
@@ -984,7 +1053,8 @@ function applyMarks(r, kind, es) {
   }
   return add.length + rem.length;
 }
-function savePend() {
+function savePend() { return withLog('marks', savePend0); }
+function savePend0() {
   const v0 = view; view = 'all'; let rows; try { rows = summaryRows(); } finally { view = v0; }
   const byKey = new Map(rows.filter(r => r.kind !== 'mark').map(r => [rowKey(r), r])), marks = new Map();
   let n = 0;
@@ -1023,7 +1093,7 @@ function renderSummary() {
       <span>${se ? `<button class="tgb ${se.st} ${se.p ? 'pend' : ''}" data-st="${i}" aria-label="Жильё">🛏${n ? n + 'н' : ''}</button>` : (r.zero ? '<span class="tgn">1 день</span>' : r.cont ? '<span class="tgn">там же</span>' : '')}</span></div>`;
     if (open) h += rowDetail(r, i);
   });
-  h += `<div class="sfoot"><button class="chip link" data-reded="">✎ Изменить маршрут</button><button class="chip" data-add="stops">＋ Город</button></div></div><div class="muted" style="text-align:center;margin-top:8px">${view === 'mine' && me ? 'Показано твоё. Переключи «Все», чтобы видеть, у кого чего нет' : '<span class="tgb on" style="display:inline-flex;width:auto;padding:0 6px;height:20px">у всех</span> <span class="tgb part" style="display:inline-flex;width:auto;padding:0 6px;height:20px">3/5 не у всех</span> <span class="tgb" style="display:inline-flex;width:auto;padding:0 6px;height:20px">ни у кого</span>'}</div>`;
+  h += `<div class="sfoot"><button class="chip link" data-reded="">✎ Изменить маршрут</button><button class="chip" data-add="stops">＋ Город</button><button class="chip" data-log>🕘 История${logNew ? ` <span class="bdg">${logNew}</span>` : ''}</button></div></div><div class="muted" style="text-align:center;margin-top:8px">${view === 'mine' && me ? 'Показано твоё. Переключи «Все», чтобы видеть, у кого чего нет' : '<span class="tgb on" style="display:inline-flex;width:auto;padding:0 6px;height:20px">у всех</span> <span class="tgb part" style="display:inline-flex;width:auto;padding:0 6px;height:20px">3/5 не у всех</span> <span class="tgb" style="display:inline-flex;width:auto;padding:0 6px;height:20px">ни у кого</span>'}</div>`;
   return h;
 }
 function markHtml(r) {
@@ -1275,7 +1345,8 @@ function edStayPlan() {
     if (x.checkin !== y.checkin || x.checkout !== y.checkout || x.city !== y.city || !sameWho(x.who, y.who)) { const { id: _, ...rest } = y; ops.push(['put', id, { ...data.stays[id], checkin: rest.checkin, checkout: rest.checkout, city: rest.city, who: rest.who }]); } });
   return ops;
 }
-function edSave() {
+function edSave() { return withLog('route', edSave0); }
+function edSave0() {
   if ([...edIssues().values()].flat().some(x => x[0] === 'err')) return toast('Сначала исправь отмеченное ⛔');
   const n = edCount(); if (!n) return;
   const stayOps = edStayPlan(), stopOps = [], legOps = [];
@@ -1329,6 +1400,74 @@ function openRouteEd(o = {}) {
     if (T.closest('[data-edaddx]')) { ed.add = null; return edPaint(); } });
   sh.addEventListener('submit', e => { if (ed && e.target.matches('[data-edaddform]')) { e.preventDefault(); edAddSubmit(e.target); } });
 }
+const KIND_L = { route: '✎ Маршрут', marks: '✓ Отметки в сводке', leave: '🔀 Кто-то едет отдельно', restore: '↩ Возврат как было' };
+const lgAgo = t => { const m = Math.round((Date.now() - t) / 6e4); if (m < 1) return 'только что'; if (m < 60) return m + ' мин назад'; const d = new Date(t);
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const dayLabel = t => { const k = key(new Date(t)), td = todayKey(); return k === td ? 'Сегодня' : k === addDays(td, -1) ? 'Вчера' : fmtDW(k); };
+function fmtV(k, v, sec) {
+  if (v == null || v === '' || (Array.isArray(v) && !v.length)) return k === 'who' ? 'все' : '—';
+  if (k === 'status') return v === 'todo' ? (sec === 'transport' ? 'не куплен' : 'ищем') : (sec === 'transport' ? 'куплен' : 'забронировано');
+  if (k === 'done') return v ? 'да' : 'нет';
+  if (k === 'type') return (TYPES[v] || TYPES.other)[1].toLowerCase();
+  if (k === 'files') return Object.keys(v).length + ' шт.';
+  if (k === 'pnrs') return Object.entries(v).map(([p, c]) => p + ': ' + c).join(', ');
+  if (Array.isArray(v)) return v.join(', ');
+  if (typeof v === 'string' && /^\d{4}-\d\d-\d\d/.test(v)) return fmtD(v) + (v.length > 10 ? ' ' + v.slice(11, 16) : '');
+  if (typeof v === 'string' && /^https?:/.test(v)) return host(v);
+  const t = String(v); return t.length > 40 ? t.slice(0, 40) + '…' : t;
+}
+function chText(sec, [k, a, b]) {
+  if (k === 'who' || k === 'people') { const A = a || [], B = b || [];
+    if (k === 'who' && (!A.length || !B.length)) return `кто: ${fmtV(k, a)} → ${fmtV(k, b)}`;
+    const plus = B.filter(x => !A.includes(x)), minus = A.filter(x => !B.includes(x));
+    return `${FL[k]}: ${[...plus.map(x => '+' + x), ...minus.map(x => '−' + x)].join(', ')}`; }
+  if (k === 'lat') return 'координаты';
+  if (k === 'text' || k === 'notes' || k === 'note') return FL[k] + ' изменён' + (k === 'notes' ? 'ы' : '');
+  return `${FL[k]}: ${fmtV(k, a, sec)} → ${fmtV(k, b, sec)}`;
+}
+function logItemHtml(it) {
+  const icon = it.op === 'add' ? '➕' : it.op === 'del' ? '🗑' : '✏️', alive = it.sec === 'meta' || !!data[it.sec]?.[it.id];
+  const ch = (it.ch || []).filter(c => c[0] !== 'lng');
+  const body = `${icon} <b>${SEC_L[it.sec] || ''}</b> ${esc(it.t || '')}${it.op === 'add' ? ' <span class="muted">добавлено</span>' : it.op === 'del' ? ' <span class="muted">удалено</span>' : ''}${ch.length ? `<div class="lgc">${ch.slice(0, 4).map(c => esc(chText(it.sec, c))).join('<br>')}${ch.length > 4 ? `<br>и ещё ${ch.length - 4}` : ''}</div>` : ''}`;
+  return alive && it.op !== 'del' ? `<button class="lgi" data-logopen="${it.sec}|${it.id}">${body}<span class="lgo">открыть ›</span></button>` : `<div class="lgi">${body}</div>`;
+}
+let logList = [], logN = 60, logF = '';
+const LOGF = [['', 'Все'], ['route', 'Маршрут'], ['transport', 'Билеты'], ['stays', 'Жильё'], ['other', 'Остальное']];
+const logMatch = e => !logF || (logF === 'route' ? e.kind === 'route' || e.kind === 'leave' || e.items.some(i => i.sec === 'stops')
+  : logF === 'other' ? e.items.some(i => !['stops', 'stays', 'transport'].includes(i.sec)) : e.items.some(i => i.sec === logF));
+async function openLog(more) {
+  if (!more) { logN = 60; ls.set('trip-logseen-' + TRIP, Date.now()); logNew = 0; render(); }
+  if (!more) openSheet(`<h2>🕘 История изменений</h2><div class="empty">Загружаю…</div>`);
+  logList = await loadLog(logN);
+  paintLog();
+}
+function paintLog() {
+  const box = $('#sheetIn'); if (!box) return;
+  const L = logList.filter(logMatch); let h = `<h2>🕘 История изменений</h2>
+    <div class="hscroll" style="margin-bottom:6px">${LOGF.map(([k, l]) => `<button class="chip ${logF === k ? 'on' : ''}" data-logf="${k}">${l}</button>`).join('')}</div>`;
+  if (mode === 'fb' && !online) h += `<div class="banner off">📴 Нет сети: видны только изменения с этого телефона</div>`;
+  if (!L.length) h += `<div class="empty"><b>🕘</b>${logList.length ? 'Под этот фильтр ничего нет' : 'Пока пусто. Здесь появятся все изменения: кто, что и когда поменял.'}</div>`;
+  let day = '';
+  L.forEach(e => { const d = dayLabel(e.at); if (d !== day) { day = d; h += `<div class="h2">${d}</div>`; }
+    const undo = e.items.some(i => i.op === 'add' || i.prev);
+    h += `<div class="lge">${av(e.by || '?')}<div class="grow"><div class="lgh"><b>${esc(e.by || 'Кто-то')}</b>${e.kind ? ` · ${KIND_L[e.kind] || ''}` : ''}<span class="muted">${lgAgo(e.at)}</span></div>
+      ${e.items.slice(0, 6).map(logItemHtml).join('')}${e.items.length > 6 ? `<div class="muted" style="font-size:12.5px">и ещё ${e.items.length - 6}</div>` : ''}
+      ${undo ? `<button class="chip lgu" data-logundo="${e.key}">↩ Вернуть как было</button>` : ''}</div></div>`; });
+  if (logList.length >= logN) h += `<div style="text-align:center;margin-top:10px"><button class="chip" data-logmore>Показать ещё</button></div>`;
+  box.innerHTML = h;
+}
+function logUndo(k) {
+  const e = logList.find(x => x.key === k); if (!e) return;
+  const later = e.items.filter(i => { const cur = i.sec === 'meta' ? data.meta : data[i.sec]?.[i.id]; return cur?.updatedAt > e.at + 1500; });
+  const what = e.items.length === 1 ? `«${e.items[0].t}»` : `${e.items.length} ${plural(e.items.length, 'изменение', 'изменения', 'изменений')}`;
+  const msg = `Вернуть ${what} как было до ${lgAgo(e.at) === 'только что' ? 'этого' : dayLabel(e.at).toLowerCase() + ' ' + lgAgo(e.at)}?` + (later.length ? `\n\nПосле этого ${later.map(i => '«' + i.t + '»').join(', ')} уже меняли ещё раз, эти правки тоже откатятся.` : '');
+  confirmBox(msg, ok => { if (!ok) return;
+    withLog('restore', () => [...e.items].reverse().forEach(i => {
+      if (i.op === 'add') { if (i.sec !== 'meta' && data[i.sec]?.[i.id]) del(i.sec, i.id); }
+      else if (i.prev) { if (i.sec === 'meta') putMeta(i.prev); else put(i.sec, i.id, i.prev); }
+    }));
+    haptic('medium'); toast('Вернул как было'); setTimeout(() => openLog(), 400); });
+}
 function openLeave(sid) {
   const s = data.stops[sid], ppl = stopPpl(s);
   openSheet(`<form id="leaveForm"><h2>🔀 Кто едет отдельно?</h2><div class="muted" style="margin:-4px 0 10px">После города «${esc(s.city)}», с ${fmtD(s.to)}</div>
@@ -1348,7 +1487,7 @@ function openLeave(sid) {
     if (lf.elements.dst.value === 'city' && !toCity) { toast('Напиши, куда едут'); return; }
     if (!out.length) { toast('Отметь, кто уезжает'); return; }
     if (out.length === ppl.length) { toast(toCity ? 'Если едут все, просто добавь город после' : 'Если уезжают все, просто убери следующие города'); return; }
-    openRow = null;
+    openRow = null; logKind = 'leave';
     stopsSorted().filter(o => o.from > s.from).forEach(o => { const w = stopPpl(o).filter(p => !out.includes(p)); if (w.length) put('stops', o.id, { ...data.stops[o.id], who: w }); });
     if (toCity) put('stops', uid(), { city: toCity, from: lf.elements.from.value || s.to, to: lf.elements.to.value || '', who: out, createdAt: Date.now() });
     closeSheet(); openRow = null; haptic('medium'); toast(toCity ? `${out.join(', ')}: ${s.city} → ${toCity}` : `${out.join(', ')}: домой из ${s.city}`); };
@@ -1753,14 +1892,14 @@ function openForm(sec, id, preset = {}) {
   const advF = sc.fields.filter(isAdv);
   const advFilled = advF.flatMap(f => Array.isArray(f[0]) ? f : [f]).some(([n, , t]) => t === 'coords' ? it.lat != null || it.mapUrl : (Array.isArray(it[n]) ? it[n].length : it[n]));
   const adv = advF.length ? `<details class="adv" ${advFilled ? 'open' : ''}><summary>Подробнее (необязательно) ▾</summary>${advF.map(fh).join('')}</details>` : '';
-  const meta = it.updatedAt ? `<div class="muted" style="margin-top:12px;text-align:center">Изменено ${new Date(it.updatedAt).toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}${it.updatedBy ? ' · ' + esc(it.updatedBy) : ''}</div>` : '';
+  const meta = it.updatedAt ? `<div class="muted" style="margin-top:12px;text-align:center" data-log>🕘 Изменено ${new Date(it.updatedAt).toLocaleString('ru-RU', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}${it.updatedBy ? ' · ' + esc(it.updatedBy) : ''}</div>` : '';
   openSheet(`<form id="itemForm"><h2>${id ? '' : 'Новое: '}${esc(sc.title)}</h2>${basic}${adv}
     <div class="actions">${id && sec !== 'stops' ? '<button type="button" class="btn del" id="delBtn">Удалить</button>' : ''}<button type="button" class="btn" id="cancelBtn">Отмена</button><button class="btn pri" id="saveBtn">Сохранить</button></div>${meta}</form>`);
   const form = $('#itemForm');
   $('#cancelBtn').onclick = closeSheet;
   if (sec === 'stops') form.querySelector('h2').insertAdjacentHTML('afterend', `<div class="muted" style="margin:-6px 0 12px">${it.from === it.to ? fmtD(it.from) + ', на один день' : fmtD(it.from) + ' – ' + fmtD(it.to)} · <a href="#" data-reded="${id}">изменить даты и порядок</a></div>`);
   form.addEventListener('change', e => { if (e.target.type === 'file') { const n = e.target.files.length; form.querySelector('[data-fpick]').textContent = n ? `Выбрано файлов: ${n}. Нажмите «Сохранить»` : ''; const st = form.querySelector('input[name=status][value=booked]'); if (n && st) st.checked = true; } });
-  if ($('#delBtn')) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { Object.keys(it.files || {}).forEach(removeFile); del(sec, id); closeSheet(); toast('Удалено'); } });
+  if ($('#delBtn')) $('#delBtn').onclick = () => confirmBox('Удалить запись?', ok => { if (ok) { del(sec, id); closeSheet(); toast('Удалено. Вернуть можно в «🕘 Истории»'); } });
   form.onsubmit = async e => {
     e.preventDefault();
     const out = { ...it };
@@ -1863,7 +2002,7 @@ function openMe(first) {
     <div class="sec">${people().map(p => `<div class="prow">${av(p)}<div class="grow">${esc(p)}${p === me ? ' <span class="muted">(это ты)</span>' : ''}</div><button class="x" data-rmp="${esc(p)}" title="Убрать">×</button></div>`).join('')}
       <form class="prow" data-addp><span class="av" style="--c:var(--hint)">＋</span><input name="p" placeholder="Добавить участника" autocomplete="off" style="background:none;border:0;padding:6px 0"><button class="chip link">Добавить</button></form></div>
     ${first ? '' : `<div class="h2">Поездка</div>
-    <div class="btns" style="margin-bottom:8px"><button class="chip link" data-invite>👥 Позвать друзей</button><button class="chip" data-home>🗂 Мои поездки</button></div>
+    <div class="btns" style="margin-bottom:8px"><button class="chip link" data-invite>👥 Позвать друзей</button><button class="chip" data-log>🕘 История изменений${logNew ? ` <span class="bdg">${logNew}</span>` : ''}</button><button class="chip" data-home>🗂 Мои поездки</button></div>
     <div class="sec"><div class="ev" data-meta><div class="ic">✈️</div><div class="grow">${esc(m.title || 'Поездка')}<div class="muted">${fmtD(m.start)} → ${fmtD(m.end)} · ${esc(people().join(', '))}</div></div>✎</div></div>
     <div class="h2">Данные</div>
     <div class="muted" style="margin:0 4px 8px">${mode === 'fb' ? `Общая база · ${online ? 'онлайн' : 'офлайн'}` : 'Только в этом браузере'}</div>
@@ -1920,6 +2059,14 @@ document.addEventListener('click', e => {
     if (!isMineMode() && tState(r) === 'part' && !pend.has('t|' + rowKey(r)) && !T.closest('.sx')) { if (openRow !== i) { openRow = i; render(); } haptic('soft'); toast('Билет не у всех: отметь ниже, у кого он есть'); return; }
     stage('t', r); return; }
   const stg = T.closest('[data-st]'); if (stg) { e.stopPropagation(); const r = sumRows[+stg.dataset.st]; if (r) stage('s', r); return; }
+  if (T.closest('[data-log]')) { e.preventDefault(); closeSheet(); setTimeout(() => openLog(), 260); return; }
+  const lfb = T.closest('[data-logf]'); if (lfb) { logF = lfb.dataset.logf; paintLog(); return; }
+  if (T.closest('[data-logmore]')) { logN += 60; openLog(true); return; }
+  const lu = T.closest('[data-logundo]'); if (lu) { logUndo(lu.dataset.logundo); return; }
+  const lo = T.closest('[data-logopen]'); if (lo) { const [sec, id] = lo.dataset.logopen.split('|');
+    if (sec === 'meta') return openMetaForm(); if (sec === 'stops') { cityOpen = id; return openCity(id); }
+    if (sec === 'options') { const o = data.options?.[id]; if (o) { const [ps, pid] = o.parent.split(':'); return openForm(ps, pid); } }
+    return openForm(sec, id); }
   const re = T.closest('[data-reded]'); if (re) { e.preventDefault(); openRouteEd({ focus: re.dataset.reded || undefined }); return; }
   if (T.closest('[data-close]')) { closeSheet(); return; }
   const lv = T.closest('[data-leave]'); if (lv) { openLeave(lv.dataset.leave); return; }
