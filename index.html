@@ -210,6 +210,25 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .tgn{display:block;text-align:center;font-size:11px;color:var(--hint);white-space:nowrap}
 .pc.pend{border:1.5px solid var(--btn);background:color-mix(in srgb,var(--btn) 12%,transparent);cursor:pointer}
 .sx .pendn{color:var(--btn);font-weight:600;font-size:12.5px}
+.bhd,.brow{display:grid;grid-template-columns:44px minmax(0,1fr) 58px 46px;gap:6px;align-items:center;padding:0 4px}
+.bhd{padding-bottom:4px;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em}.bhd span:nth-child(n+3){text-align:center}
+.brow{min-height:34px;border-bottom:1px solid var(--line);cursor:pointer}
+.brow.open{background:var(--soft);border-radius:10px 10px 0 0}
+.brow.past{opacity:.5}
+.brow .sd{font-size:12.5px;color:var(--hint);font-variant-numeric:tabular-nums;line-height:1.1}
+.brow .sd small{display:block;font-size:10px;opacity:.85}
+.brow .sn{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow.gap .sn{color:var(--hint)}
+.brow>span:nth-child(3){text-align:center;white-space:nowrap;overflow:hidden}
+.brow .spp{margin-left:0}
+.badd{padding:4px 10px;font-size:12.5px}
+.ball{font-size:11.5px;color:var(--hint)}
+.bdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c,var(--hint));margin-right:6px;vertical-align:1px}
+.btag{display:flex;align-items:center;justify-content:center;height:24px;border-radius:8px;font-size:11.5px;font-weight:600;border:1.5px dashed var(--line);color:var(--hint)}
+.btag.on{border:1.5px solid color-mix(in srgb,var(--ok) 55%,transparent);background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.btag.no{border-color:color-mix(in srgb,var(--warn) 55%,transparent);color:var(--warn)}
+.bx{background:var(--soft);border-radius:0 0 10px 10px;padding:8px 8px 1px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.bx .card{box-shadow:none;border:1px solid var(--line);margin-bottom:8px}
 .gapc{display:flex;align-items:center;gap:10px;background:none;box-shadow:none;border:1.5px dashed color-mix(in srgb,var(--warn) 55%,transparent)}
 .lge{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.h2+.lge{border-top:0}
 .lge>.av{margin-top:2px}.lgh{display:flex;gap:6px;align-items:baseline;font-size:13.5px;flex-wrap:wrap}.lgh .muted{margin-left:auto;font-size:12px}
@@ -892,7 +911,7 @@ function render() {
   ({ route: renderRoute, days: renderDays, book: renderBook, places: renderPlaces, notes: renderNotes }[tab] || renderRoute)();
   document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + tab));
-  $('#fab').style.display = (tab === 'places' && placesView === 'map') || pend.size ? 'none' : '';
+  $('#fab').style.display = (tab === 'places' && placesView === 'map') || tab === 'book' || pend.size ? 'none' : '';
   $('#pendBar').style.display = pend.size ? 'flex' : 'none';
   if (pend.size) $('#pendN').textContent = `Не сохранено: ${pend.size} ${plural(pend.size, 'изменение', 'изменения', 'изменений')}`;
   const pc = mode === 'fb' ? pendingCount() : 0;
@@ -1683,20 +1702,53 @@ function optionsHtml(sec, it, compact) {
       <button class="chip" data-pick="${o.id}">✅ Берём</button><button class="chip" data-editopt="${o.id}">✎</button></div>`).join('')}
     <button class="chip link" data-addopt="${sec}:${it.id}" style="margin-top:8px">＋ ${ops.length ? 'ещё вариант' : 'предложить вариант / ссылку'}</button></div>`;
 }
+/* «Брони»: сжатые таблицы, одна строка на билет или жильё; подробности раскрываются по нажатию */
+let bookOpen = null;
 function renderBook() {
   const trs = list('transport').filter(visible).sort((a, b) => (a.depart || '9').localeCompare(b.depart || '9'));
   const sts = list('stays').filter(visible).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
+  const rows = stopsSorted().length ? summaryRows() : [], today = todayKey();
   let h = `<div class="seg"><button data-bseg="tickets" class="${bookSeg === 'tickets' ? 'on' : ''}">🎫 Билеты · ${trs.length}</button><button data-bseg="stays" class="${bookSeg === 'stays' ? 'on' : ''}">🏨 Жильё · ${sts.length}</button></div>`;
+  const tag = (cls, t) => `<span class="btag ${cls}">${t}</span>`;
   if (bookSeg === 'tickets') {
-    // переезды из маршрута, на которые ещё никто не завёл билет: показываем их тут же, по датам
-    const gaps = stopsSorted().length ? summaryRows().filter(r => (r.kind === 'move' || r.kind === 'home') && !r.legs.length && r.from && r.from !== 'Старт') : [];
-    const items = [...trs.map(t => [(t.depart || '9').slice(0, 10), 1, ticketCard(t)]), ...gaps.map(r => [r.date || '9', 0,
-      `<div class="card tap gapc" data-addleg="${esc(r.from)}|${esc(r.to)}|${esc(r.date || '')}"><div class="grow"><b>❔ Билета нет: ${esc(r.from)} → ${esc(r.to)}</b><div class="muted">${fmtDW(r.date)}${someoneOut(r) ? ' · ' + esc(r.ppl.join(', ')) : ''}</div></div><span class="chip link">＋ Добавить</span></div>`])]
-      .sort((a, b) => a[0].localeCompare(b[0]) || a[1] - b[1]);
-    h += items.length ? (gaps.length ? `<div class="muted" style="margin:0 4px 8px;font-size:12.5px">Здесь билеты, которые кто-то добавил, и переезды из маршрута, на которые билета ещё нет (${gaps.length}).</div>` : '') + items.map(x => x[2]).join('')
-      : `<div class="empty"><b>🎫</b>${view === 'mine' && me ? 'У тебя пока нет билетов.<br>Добавь свои через ＋' : 'Билетов пока нет'}</div>`;
+    // один рейс у нескольких людей показываем одной строкой; переезды из маршрута без билета стоят тут же по датам
+    const legs = mergeLegs(trs), gaps = rows.filter(r => (r.kind === 'move' || r.kind === 'home') && !r.legs.length && r.from && r.from !== 'Старт');
+    const items = [...legs.map(x => ({ d: (x.depart || '9').slice(0, 10), o: 1, x })), ...gaps.map(r => ({ d: r.date || '9', o: 0, r }))].sort((a, b) => a.d.localeCompare(b.d) || a.o - b.o);
+    const ok = legs.filter(x => x.status !== 'todo').length;
+    if (!items.length) h += `<div class="empty"><b>🎫</b>${view === 'mine' && me ? 'У тебя пока нет билетов' : 'Билетов пока нет'}<br><br><button class="chip link" data-bookadd>＋ Билет</button></div>`;
+    else {
+      h += `<div class="sumhead" style="align-items:center"><button class="chip link badd" data-bookadd>＋ Билет</button><span>куплено <b>${ok}</b> из ${items.length}${gaps.length ? ` · без билета <b style="color:var(--warn)">${items.length - ok}</b>` : ''}</span></div>
+        <div class="card" style="padding:8px 8px 4px"><div class="shint">Нажми строку, чтобы раскрыть подробности</div><div class="bhd"><span>дата</span><span>маршрут</span><span>кто</span><span>билет</span></div>`;
+      items.forEach(({ x, r }) => {
+        if (r) { h += `<div class="brow gap" data-addleg="${esc(r.from)}|${esc(r.to)}|${esc(r.date || '')}"><span class="sd">${dm(r.date)}</span><span class="sn">${esc(r.from)} → ${esc(r.to)}</span><span>${someoneOut(r) ? `<span class="spp">${r.ppl.map(av).join('')}</span>` : ''}</span>${tag('no', '＋')}</div>`; return; }
+        const k = 't:' + x.id, open = bookOpen === k, past = (x.arrive || x.depart || '9').slice(0, 10) < today;
+        h += `<div class="brow ${open ? 'open' : ''} ${past ? 'past' : ''}" data-brow="${k}"><span class="sd">${dm((x.depart || '').slice(0, 10)) || '—'}${fmtT(x.depart) ? `<small>${fmtT(x.depart)}</small>` : ''}</span>
+          <span class="sn">${(TYPES[x.type] || TYPES.other)[0]} ${esc(cityOfPt(x.from))} → ${esc(cityOfPt(x.to))}</span>
+          <span>${x.who?.length ? `<span class="spp">${x.who.slice(0, 5).map(av).join('')}</span>` : '<span class="ball">все</span>'}</span>${x.status === 'todo' ? tag('no', 'нет') : tag('on', 'есть')}</div>`;
+        if (open) h += `<div class="bx">${(x.recs || [x]).map(ticketCard).join('')}</div>`;
+      });
+      h += `</div>`;
+    }
+  } else {
+    // города маршрута с ночёвкой, где жильё вообще не заведено
+    const gaps = rows.filter(r => r.kind === 'move' && !r.ns && !r.stay && r.stop?.from && r.stop?.to);
+    const items = [...sts.map(x => ({ d: x.checkin || '9', o: 1, x })), ...gaps.map(r => ({ d: r.stop.from, o: 0, r }))].sort((a, b) => a.d.localeCompare(b.d) || a.o - b.o);
+    const ok = sts.filter(x => x.status !== 'todo').length;
+    if (!items.length) h += `<div class="empty"><b>🏨</b>Жилья пока нет<br><br><button class="chip link" data-bookadd>＋ Жильё</button></div>`;
+    else {
+      h += `<div class="sumhead" style="align-items:center"><button class="chip link badd" data-bookadd>＋ Жильё</button><span>забронировано <b>${ok}</b> из ${items.length}</span></div>
+        <div class="card" style="padding:8px 8px 4px"><div class="shint">Нажми строку, чтобы раскрыть подробности</div><div class="bhd"><span>заезд</span><span>жильё</span><span>ночей</span><span>бронь</span></div>`;
+      items.forEach(({ x, r }) => {
+        if (r) { const n = daysBetween(r.stop.from, r.stop.to);
+          h += `<div class="brow gap" data-addstay="${esc(r.stop.city)}|${r.stop.from}|${r.stop.to}"><span class="sd">${dm(r.stop.from)}</span><span class="sn"><i class="bdot" style="--c:${cityColor(r.stop.city)}"></i>${esc(r.stop.city)}: жилья нет</span><span class="ball">${n}н</span>${tag('no', '＋')}</div>`; return; }
+        const k = 's:' + x.id, open = bookOpen === k, n = x.checkin && x.checkout ? daysBetween(x.checkin, x.checkout) : 0, past = (x.checkout || '9') < today;
+        h += `<div class="brow ${open ? 'open' : ''} ${past ? 'past' : ''}" data-brow="${k}"><span class="sd">${dm(x.checkin) || '—'}</span>
+          <span class="sn"><i class="bdot" style="--c:${cityColor(x.city)}"></i>${esc(x.name || x.city || 'Жильё')}</span><span class="ball">${n ? n + 'н' : ''}</span>${x.status === 'todo' ? tag('no', 'ищем') : tag('on', 'есть')}</div>`;
+        if (open) h += `<div class="bx">${stayCard(x)}</div>`;
+      });
+      h += `</div>`;
+    }
   }
-  else h += sts.length ? sts.map(stayCard).join('') : `<div class="empty"><b>🏨</b>Жилья пока нет</div>`;
   $('#tab-book').innerHTML = h;
 }
 
@@ -2092,6 +2144,9 @@ document.addEventListener('click', e => {
   }
   if (T.closest('[data-stop]') && !T.closest('a,button')) { e.stopPropagation(); return; }
   const mb = T.closest('[data-me]'); if (mb) { setMe(mb.dataset.me); return; }
+  if (T.closest('[data-bookadd]')) { openForm(bookSeg === 'stays' ? 'stays' : 'transport', null, { status: 'booked', ...(bookSeg !== 'stays' && me && view === 'mine' ? { who: [me] } : {}) }); return; }
+  const brw = T.closest('[data-brow]'); if (brw) { bookOpen = bookOpen === brw.dataset.brow ? null : brw.dataset.brow; haptic('soft'); renderBook(); return; }
+  const ast = T.closest('[data-addstay]'); if (ast) { const [city, checkin, checkout] = ast.dataset.addstay.split('|'); openForm('stays', null, { city, checkin, checkout, status: 'booked' }); return; }
   const al = T.closest('[data-addleg]'); if (al) { const [from, to, date] = al.dataset.addleg.split('|'); openForm('transport', null, { from, to, depart: date, status: 'booked', who: me && view === 'mine' ? [me] : [] }); return; }
   const rw = T.closest('[data-row]'); if (rw && !T.closest('button,a,input,form')) { const i = +rw.dataset.row; openRow = openRow === i ? null : i; haptic('soft'); renderRoute(); return; }
   const ed = T.closest('[data-edit]'); if (ed) { e.preventDefault(); const [sec, id] = ed.dataset.edit.split(':'); map?.closePopup(); openForm(sec, id); return; }
@@ -2106,7 +2161,7 @@ document.addEventListener('click', e => {
   if (T.closest('[data-meta]')) { openMetaForm(); return; }
   const gt = T.closest('[data-go]'); if (gt) { const [t, s] = gt.dataset.go.split(':'); if (s) bookSeg = s; if (t === 'notes') notesSeg = 'notes'; go(t); return; }
   const v = T.closest('[data-view]'); if (v) { if (pend.size && v.dataset.view !== view) return toast('Сначала сохрани или отмени отметки в сводке'); view = v.dataset.view; ls.set('trip-view', view); haptic(); render(); return; }
-  const bs = T.closest('[data-bseg]'); if (bs) { bookSeg = bs.dataset.bseg; renderBook(); return; }
+  const bs = T.closest('[data-bseg]'); if (bs) { bookSeg = bs.dataset.bseg; bookOpen = null; renderBook(); return; }
   const pv = T.closest('[data-pview]'); if (pv) { placesView = pv.dataset.pview; render(); return; }
   const pc = T.closest('[data-pcity]'); if (pc) { placeCity = pc.dataset.pcity; renderPlaces(); return; }
   const ns = T.closest('[data-nseg]'); if (ns) { notesSeg = ns.dataset.nseg; renderNotes(); return; }
