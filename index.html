@@ -210,10 +210,15 @@ sup{font-size:10px;color:var(--warn);font-weight:700}
 .tgn{display:block;text-align:center;font-size:11px;color:var(--hint);white-space:nowrap}
 .pc.pend{border:1.5px solid var(--btn);background:color-mix(in srgb,var(--btn) 12%,transparent);cursor:pointer}
 .sx .pendn{color:var(--btn);font-weight:600;font-size:12.5px}
-.bhd,.brow{display:grid;grid-template-columns:44px minmax(0,1fr) 58px 46px;gap:6px;align-items:center;padding:0 4px}
+.bhd,.brow{display:grid;grid-template-columns:38px minmax(0,1fr) 54px 42px 10px;gap:5px;align-items:center;padding:0 4px}
 .bhd{padding-bottom:4px;font-size:11px;color:var(--hint);text-transform:uppercase;letter-spacing:.04em}.bhd span:nth-child(n+3){text-align:center}
 .brow{min-height:34px;border-bottom:1px solid var(--line);cursor:pointer}
 .brow.open{background:var(--soft);border-radius:10px 10px 0 0}
+.brow:not(.gap):active{background:var(--soft)}
+.bchev{display:inline-block;width:7px;height:7px;border-right:2px solid var(--link);border-bottom:2px solid var(--link);transform:rotate(-45deg);justify-self:center;transition:transform .18s;opacity:.8}
+.brow.open .bchev{transform:translateY(-2px) rotate(45deg);opacity:1}
+.bhint{display:flex;align-items:center;gap:8px;color:var(--link);background:color-mix(in srgb,var(--link) 9%,transparent);border-radius:8px;padding:4px 8px;margin:0 0 4px}
+.bhint .bchev{flex:none;margin-left:2px}
 .brow.past{opacity:.5}
 .brow .sd{font-size:12.5px;color:var(--hint);font-variant-numeric:tabular-nums;line-height:1.1}
 .brow .sd small{display:block;font-size:10px;opacity:.85}
@@ -1704,6 +1709,9 @@ function optionsHtml(sec, it, compact) {
 }
 /* «Брони»: сжатые таблицы, одна строка на билет или жильё; подробности раскрываются по нажатию */
 let bookOpen = null;
+// подсказка пропадает со следующего запуска после первого раскрытия: посреди нажатия строки не прыгают
+const bookHintOff = !!ls.get('trip-bookhint');
+const bookHint = () => bookHintOff ? '' : `<div class="shint bhint"><i class="bchev"></i>Нажми на строку — под ней раскроются подробности</div>`;
 function renderBook() {
   const trs = list('transport').filter(visible).sort((a, b) => (a.depart || '9').localeCompare(b.depart || '9'));
   const sts = list('stays').filter(visible).sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
@@ -1718,13 +1726,13 @@ function renderBook() {
     if (!items.length) h += `<div class="empty"><b>🎫</b>${view === 'mine' && me ? 'У тебя пока нет билетов' : 'Билетов пока нет'}<br><br><button class="chip link" data-bookadd>＋ Билет</button></div>`;
     else {
       h += `<div class="sumhead" style="align-items:center"><button class="chip link badd" data-bookadd>＋ Билет</button><span>куплено <b>${ok}</b> из ${items.length}${gaps.length ? ` · без билета <b style="color:var(--warn)">${items.length - ok}</b>` : ''}</span></div>
-        <div class="card" style="padding:8px 8px 4px"><div class="shint">Нажми строку, чтобы раскрыть подробности</div><div class="bhd"><span>дата</span><span>маршрут</span><span>кто</span><span>билет</span></div>`;
+        <div class="card" style="padding:8px 8px 4px">${bookHint()}<div class="bhd"><span>дата</span><span>маршрут</span><span>кто</span><span>билет</span></div>`;
       items.forEach(({ x, r }) => {
         if (r) { h += `<div class="brow gap" data-addleg="${esc(r.from)}|${esc(r.to)}|${esc(r.date || '')}"><span class="sd">${dm(r.date)}</span><span class="sn">${esc(r.from)} → ${esc(r.to)}</span><span>${someoneOut(r) ? `<span class="spp">${r.ppl.map(av).join('')}</span>` : ''}</span>${tag('no', '＋')}</div>`; return; }
         const k = 't:' + x.id, open = bookOpen === k, past = (x.arrive || x.depart || '9').slice(0, 10) < today;
         h += `<div class="brow ${open ? 'open' : ''} ${past ? 'past' : ''}" data-brow="${k}"><span class="sd">${dm((x.depart || '').slice(0, 10)) || '—'}${fmtT(x.depart) ? `<small>${fmtT(x.depart)}</small>` : ''}</span>
           <span class="sn">${(TYPES[x.type] || TYPES.other)[0]} ${esc(cityOfPt(x.from))} → ${esc(cityOfPt(x.to))}</span>
-          <span>${x.who?.length ? `<span class="spp">${x.who.slice(0, 5).map(av).join('')}</span>` : '<span class="ball">все</span>'}</span>${x.status === 'todo' ? tag('no', 'нет') : tag('on', 'есть')}</div>`;
+          <span>${x.who?.length ? `<span class="spp">${x.who.slice(0, 5).map(av).join('')}</span>` : '<span class="ball">все</span>'}</span>${x.status === 'todo' ? tag('no', 'нет') : tag('on', 'есть')}<i class="bchev"></i></div>`;
         if (open) h += `<div class="bx">${(x.recs || [x]).map(ticketCard).join('')}</div>`;
       });
       h += `</div>`;
@@ -1737,13 +1745,13 @@ function renderBook() {
     if (!items.length) h += `<div class="empty"><b>🏨</b>Жилья пока нет<br><br><button class="chip link" data-bookadd>＋ Жильё</button></div>`;
     else {
       h += `<div class="sumhead" style="align-items:center"><button class="chip link badd" data-bookadd>＋ Жильё</button><span>забронировано <b>${ok}</b> из ${items.length}</span></div>
-        <div class="card" style="padding:8px 8px 4px"><div class="shint">Нажми строку, чтобы раскрыть подробности</div><div class="bhd"><span>заезд</span><span>жильё</span><span>ночей</span><span>бронь</span></div>`;
+        <div class="card" style="padding:8px 8px 4px">${bookHint()}<div class="bhd"><span>заезд</span><span>жильё</span><span>ночей</span><span>бронь</span></div>`;
       items.forEach(({ x, r }) => {
         if (r) { const n = daysBetween(r.stop.from, r.stop.to);
           h += `<div class="brow gap" data-addstay="${esc(r.stop.city)}|${r.stop.from}|${r.stop.to}"><span class="sd">${dm(r.stop.from)}</span><span class="sn"><i class="bdot" style="--c:${cityColor(r.stop.city)}"></i>${esc(r.stop.city)}: жилья нет</span><span class="ball">${n}н</span>${tag('no', '＋')}</div>`; return; }
         const k = 's:' + x.id, open = bookOpen === k, n = x.checkin && x.checkout ? daysBetween(x.checkin, x.checkout) : 0, past = (x.checkout || '9') < today;
         h += `<div class="brow ${open ? 'open' : ''} ${past ? 'past' : ''}" data-brow="${k}"><span class="sd">${dm(x.checkin) || '—'}</span>
-          <span class="sn"><i class="bdot" style="--c:${cityColor(x.city)}"></i>${esc(x.name || x.city || 'Жильё')}</span><span class="ball">${n ? n + 'н' : ''}</span>${x.status === 'todo' ? tag('no', 'ищем') : tag('on', 'есть')}</div>`;
+          <span class="sn"><i class="bdot" style="--c:${cityColor(x.city)}"></i>${esc(x.name || x.city || 'Жильё')}</span><span class="ball">${n ? n + 'н' : ''}</span>${x.status === 'todo' ? tag('no', 'ищем') : tag('on', 'есть')}<i class="bchev"></i></div>`;
         if (open) h += `<div class="bx">${stayCard(x)}</div>`;
       });
       h += `</div>`;
@@ -2145,7 +2153,7 @@ document.addEventListener('click', e => {
   if (T.closest('[data-stop]') && !T.closest('a,button')) { e.stopPropagation(); return; }
   const mb = T.closest('[data-me]'); if (mb) { setMe(mb.dataset.me); return; }
   if (T.closest('[data-bookadd]')) { openForm(bookSeg === 'stays' ? 'stays' : 'transport', null, { status: 'booked', ...(bookSeg !== 'stays' && me && view === 'mine' ? { who: [me] } : {}) }); return; }
-  const brw = T.closest('[data-brow]'); if (brw) { bookOpen = bookOpen === brw.dataset.brow ? null : brw.dataset.brow; haptic('soft'); renderBook(); return; }
+  const brw = T.closest('[data-brow]'); if (brw) { bookOpen = bookOpen === brw.dataset.brow ? null : brw.dataset.brow; ls.set('trip-bookhint', '1'); haptic('soft'); renderBook(); return; }
   const ast = T.closest('[data-addstay]'); if (ast) { const [city, checkin, checkout] = ast.dataset.addstay.split('|'); openForm('stays', null, { city, checkin, checkout, status: 'booked' }); return; }
   const al = T.closest('[data-addleg]'); if (al) { const [from, to, date] = al.dataset.addleg.split('|'); openForm('transport', null, { from, to, depart: date, status: 'booked', who: me && view === 'mine' ? [me] : [] }); return; }
   const rw = T.closest('[data-row]'); if (rw && !T.closest('button,a,input,form')) { const i = +rw.dataset.row; openRow = openRow === i ? null : i; haptic('soft'); renderRoute(); return; }
