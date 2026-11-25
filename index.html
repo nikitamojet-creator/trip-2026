@@ -377,6 +377,97 @@ details.adv>summary::-webkit-details-marker{display:none}
 .sumhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:2px 4px 10px;font-size:12.5px;color:var(--hint)}
 .sumhead b{color:var(--text)}
 .banner{background:color-mix(in srgb,var(--warn) 14%,var(--card));border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+/* расходы */
+.mhero{position:relative;padding:14px 16px}
+.mhero .l{font-size:13px;font-weight:600;color:var(--hint)}
+.mhero .v{font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin:1px 0 5px;font-variant-numeric:tabular-nums}
+.mhero .s{font-size:13px;color:var(--hint);line-height:1.45}.mhero .s b{color:var(--text);font-weight:600;white-space:nowrap}
+.mhero.pos{background:color-mix(in srgb,var(--ok) 11%,var(--card))}.mhero.pos .v,.mhero.pos .l{color:var(--ok)}
+.mhero.neg{background:color-mix(in srgb,var(--warn) 11%,var(--card))}.mhero.neg .v,.mhero.neg .l{color:var(--warn)}
+.mgear{position:absolute;right:10px;top:10px;border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:16px;padding:0}
+.madd{display:block;width:100%;margin:0 0 12px;padding:14px;border:0;border-radius:16px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--g2),var(--g3));box-shadow:0 6px 16px rgba(123,92,255,.28)}
+.madd:active,.mdb:active{transform:scale(.985)}
+.mintro{text-align:center;padding:22px 16px 16px}.mintro .big{font-size:44px;line-height:1}.mintro h3{margin:8px 0 6px;font-size:20px}.mintro p{margin:0 0 14px;color:var(--hint);font-size:14.5px;line-height:1.4}
+.msteps{display:grid;gap:8px;text-align:left;margin:0 0 16px}
+.msteps div{display:flex;align-items:center;gap:10px;background:var(--bg2);border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.3}
+.msteps b{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--btn);color:var(--btn-text);font-size:13px}
+.mnote{margin:0 4px 10px;font-size:12.5px;line-height:1.4}
+.mcap{font-size:12.5px;font-weight:600;color:var(--hint);margin-bottom:8px}
+.mdebt{padding:12px 14px}.mdebt.out{box-shadow:inset 4px 0 0 var(--warn),var(--shadow)}.mdebt.in{box-shadow:inset 4px 0 0 var(--ok),var(--shadow)}
+.mdebt.out .mcap{color:var(--warn)}.mdebt.in .mcap{color:var(--ok)}
+.md1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mdp{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:15px;min-width:0}.mdp .av{width:30px;height:30px;font-size:13px}
+.marr{flex:none;color:var(--hint);font-size:20px;line-height:1}
+.mdv{margin-left:auto;font-size:19px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mdb{display:block;width:100%;margin-top:10px;border:0;border-radius:12px;padding:10px;font-weight:600;font-size:14.5px;background:var(--soft);color:var(--text)}
+.mdebt.out .mdb{background:var(--btn);color:var(--btn-text)}
+.mok{text-align:center;padding:22px 14px;font-weight:600}.mok b{display:block;font-size:36px;margin-bottom:4px}
+.mbals{padding:4px 14px}
+.mbal{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(56px,1fr) auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.mbal:first-child{border-top:0}
+.mbal .n{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar2{position:relative;height:8px;border-radius:4px;background:var(--soft)}
+.bar2::before{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1.5px;margin-left:-.75px;background:var(--line)}
+.bar2 i{position:absolute;top:0;bottom:0;border-radius:4px;min-width:3px}
+.bar2 i.pos{left:50%;background:var(--ok)}.bar2 i.neg{right:50%;background:var(--warn)}
+.mbal b{font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;min-width:74px}
+.cpos{color:var(--ok)}.cneg{color:var(--warn)}
+.mday{display:flex;justify-content:space-between;font-size:12.5px;color:var(--hint);font-weight:600;margin:14px 6px 6px}
+.mlist{padding:2px 12px}
+.mrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}.mrow:first-child{border-top:0}
+.mic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;background:var(--soft)}
+.mrow .t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .u{font-size:12.5px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .u .av{width:16px;height:16px;font-size:9px;vertical-align:-3px}
+.mr{text-align:right;flex:none;line-height:1.25}.mr b{display:block;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}.mr small{display:block;font-size:11.5px;color:var(--hint);white-space:nowrap}
+.mrow.inc .mr b{color:var(--ok)}.mrow.tr .mic{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.mtot .v{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.2;font-variant-numeric:tabular-nums}
+.mpr{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.mpr:first-child{border-top:0}
+.mpr[data-mperson]{cursor:pointer}
+.mpr .n{font-size:14.5px;margin-bottom:5px}
+.mpr .av{width:30px;height:30px;font-size:13px}
+.mb2{height:7px;border-radius:4px;background:var(--soft);overflow:hidden}.mb2 i{display:block;height:100%;border-radius:4px;background:var(--c,var(--btn));min-width:3px}
+/* форма траты */
+.mkind{margin-bottom:12px}
+.mq{font-size:13px;font-weight:600;color:var(--hint);margin:16px 2px 6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mkind+.mq{margin-top:0}
+.mamt{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:16px;padding:2px 16px;border:1.5px solid transparent}
+.mamt:focus-within{border-color:var(--btn)}
+.mamt input{flex:1;height:58px!important;border:0!important;background:none!important;padding:0!important;font-size:34px!important;font-weight:800;letter-spacing:-.02em;border-radius:0!important}
+.mamt span{font-size:26px;font-weight:700;color:var(--hint);white-space:nowrap}
+.mcurs{margin:8px 0 10px;align-items:center}.mcurs .chip{padding:7px 12px;font-size:13.5px}
+select.msel{width:112px;flex:none;height:34px!important;padding:0 28px 0 12px;font-size:13.5px;border-radius:999px!important;background-color:var(--soft);background-position:right 10px center;color:var(--link);font-weight:500;border:0}
+.mconv{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:15px;color:var(--hint)}
+.mconv input{flex:1;height:42px!important;font-weight:700;font-size:17px}
+.mconv b{color:var(--text);font-size:17px}
+.mpp{gap:6px}
+.mpp button{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1.5px solid transparent;border-radius:999px;padding:5px 12px 5px 5px;font-size:14.5px;color:var(--hint)}
+.mpp button .av{width:28px;height:28px;font-size:12px;filter:grayscale(1);opacity:.45}
+.mpp button.on{color:var(--text);border-color:var(--btn);background:color-mix(in srgb,var(--btn) 12%,var(--bg2));font-weight:600}
+.mpp button.on .av{filter:none;opacity:1}
+.mall{border:0;background:none;color:var(--link);font-size:13px;font-weight:600;padding:0}
+.mhint{font-size:13.5px;margin:10px 2px 8px;line-height:1.35}.mhint .bad{color:var(--red);font-weight:600}.mhint .good{color:var(--ok);font-weight:600}
+.msp .chip{font-size:12.5px;padding:5px 10px}
+.mparts{background:var(--bg2);border-radius:14px;padding:4px 10px;margin-top:8px}
+.mparts>.chip{margin:6px 0 8px;background:var(--card)}
+.mpt{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14.5px}.mpt:first-child{border-top:0}
+.mpt .grow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mpt input{width:84px;flex:none;height:38px!important;text-align:right;background:var(--card);font-weight:600;padding:0 10px}
+.mpt input.mw{width:54px;text-align:center}
+.mst{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--card);font-size:20px;line-height:1;color:var(--link);padding:0}
+.mu{width:22px;color:var(--hint);font-size:13px}.mres{min-width:68px;text-align:right;font-size:12.5px;color:var(--hint);white-space:nowrap}
+.mdate{display:flex;gap:6px;align-items:center}.mdate input{flex:1;height:38px!important;min-height:38px;font-size:15px}
+.mdate .chip{padding:9px 12px;flex:none}
+.mfoot{display:flex;gap:8px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.mfoot .btn{flex:0 0 auto;padding:13px 16px}.mfoot .btn.pri{flex:1}.mfoot .btn[disabled]{opacity:.5}
+.mln{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}.mln:first-child{border-top:0}
+.mln b{white-space:nowrap;font-variant-numeric:tabular-nums}
+.mln.tot{font-weight:700;font-size:16px}
+.mrate{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line);font-size:14.5px;color:var(--text)}.mrate:first-child{border-top:0}
+.mrate input{flex:1;height:38px!important;background:var(--card);text-align:right;font-weight:600}
+.mrate>span.ru{min-width:86px;white-space:nowrap}
+.mchk{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:4px 2px 0}.mchk input{width:auto;flex:none}
+nav.six button{font-size:10px}nav.six button b{font-size:19px}
 </style>
 </head>
 <body>
@@ -394,15 +485,17 @@ details.adv>summary::-webkit-details-marker{display:none}
   <section class="tab active" id="tab-route"></section>
   <section class="tab" id="tab-days"></section>
   <section class="tab" id="tab-book"></section>
+  <section class="tab" id="tab-money"></section>
   <section class="tab" id="tab-places"><div id="placesTop"></div><div id="mapBox" style="display:none"><div id="map"></div></div><div id="placesList"></div></section>
   <section class="tab" id="tab-notes"></section>
 </main>
 
 <button class="fab" id="fab" aria-label="Добавить">+</button>
-<nav><div class="in" id="nav">
+<nav class="six"><div class="in" id="nav">
   <button data-tab="route" class="active"><b>🧭</b>Маршрут</button>
   <button data-tab="days"><b>🗓</b>По дням</button>
   <button data-tab="book"><b>🎫</b>Брони</button>
+  <button data-tab="money"><b>💰</b>Расходы</button>
   <button data-tab="places"><b>📍</b>Места</button>
   <button data-tab="notes"><b>💬</b>Заметки</button>
 </div></nav>
@@ -605,16 +698,17 @@ async function putMeta(meta) {
   if (mode === 'fb') return fbWrite('meta', clean(meta));
   data.meta = meta; saveCache(); render();
 }
-const SECS = ['meta','stops','stays','transport','places','notes','todo','options'];
+const SECS = ['meta','stops','stays','transport','places','notes','todo','options','expenses'];
 
 /* ---------------- журнал изменений ----------------
    Все записи одного действия (например, «Сохранить» в редакторе маршрута) собираются в одну запись журнала.
    В записи хранится прежнее состояние каждой изменённой вещи, поэтому её можно вернуть как было. */
-const SEC_L = { stops: 'Город', stays: 'Жильё', transport: 'Билет', places: 'Место', notes: 'Заметка', todo: 'Дело', options: 'Вариант', meta: 'Поездка' };
+const SEC_L = { stops: 'Город', stays: 'Жильё', transport: 'Билет', places: 'Место', notes: 'Заметка', todo: 'Дело', options: 'Вариант', meta: 'Поездка', expenses: 'Расходы' };
 const FL = { city: 'город', country: 'страна', from: 'приезд', to: 'отъезд', who: 'кто', checkin: 'заезд', checkout: 'выезд', status: 'статус', name: 'название',
   link: 'ссылка', address: 'адрес', confirmation: 'бронь', price: 'цена', paid: 'оплачено', phone: 'телефон', notes: 'заметки', type: 'тип', depart: 'отправление',
   arrive: 'прибытие', number: 'рейс', carrier: 'перевозчик', seats: 'места', pnrs: 'коды брони', files: 'файлы', lat: 'координаты', mapUrl: 'карта', text: 'текст',
-  url: 'ссылка', day: 'день', time: 'время', cat: 'категория', done: 'сделано', title: 'название', start: 'начало', end: 'конец', people: 'участники', note: 'комментарий' };
+  url: 'ссылка', day: 'день', time: 'время', cat: 'категория', done: 'сделано', title: 'название', start: 'начало', end: 'конец', people: 'участники', note: 'комментарий',
+  payer: 'кто платил', recv: 'кому', ppl: 'за кого', amount: 'сумма', cur: 'валюта', rate: 'курс', split: 'как делим', parts: 'доли', date: 'дата', kind: 'вид', money: 'расходы' };
 let logKind = '', logQ = null, logNew = 0;
 const logMine = new Map();   // записи, сделанные в этой сессии (видны в журнале сразу, даже без сети)
 const itemTitle = (sec, x) => { if (!x) return '';
@@ -624,6 +718,7 @@ const itemTitle = (sec, x) => { if (!x) return '';
   if (sec === 'places') return x.name || '';
   if (sec === 'options') return host(x.url);
   if (sec === 'meta') return x.title || 'Поездка';
+  if (sec === 'expenses') return expTitle(x);
   return String(x.text || '').slice(0, 50); };
 const sameV = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 function logItem(sec, id, prev, next) {
@@ -697,7 +792,7 @@ async function fileCachePut(id, f) { try { await (await caches.open(FCACHE)).put
 async function prefetchFiles() {
   if (mode !== 'fb' || !online || prefetchFiles._busy) return; prefetchFiles._busy = 1;
   try {
-    const ids = [...list('transport'), ...list('stays')].flatMap(x => Object.keys(x.files || {}));
+    const ids = [...list('transport'), ...list('stays'), ...list('expenses')].flatMap(x => Object.keys(x.files || {}));
     for (const id of ids) { if (!online) break; if (await fileCacheGet(id)) continue;
       const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`)).catch(() => null))?.val(); if (f) await fileCachePut(id, f); }
   } finally { prefetchFiles._busy = 0; }
@@ -740,6 +835,7 @@ async function initStore() {
   if (!data.meta) data.meta = seedData().meta;
   render(); if (cached) askMeOnce();
   if (mode !== 'fb') setTimeout(checkNewLog, 500);
+  loadFx().then(ok => { if (ok && tab === 'money') render(); });
   if (qs.has('invite')) { history.replaceState(null, '', location.pathname + '?t=' + TRIP); setTimeout(openInvite, 600); }
 }
 
@@ -913,10 +1009,10 @@ let tab = ls.get('trip-tab') || 'route', bookSeg = 'tickets', placesView = 'list
 
 function render() {
   renderHeader();
-  ({ route: renderRoute, days: renderDays, book: renderBook, places: renderPlaces, notes: renderNotes }[tab] || renderRoute)();
+  ({ route: renderRoute, days: renderDays, book: renderBook, money: renderMoney, places: renderPlaces, notes: renderNotes }[tab] || renderRoute)();
   document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.id === 'tab-' + tab));
-  $('#fab').style.display = (tab === 'places' && placesView === 'map') || tab === 'book' || pend.size ? 'none' : '';
+  $('#fab').style.display = (tab === 'places' && placesView === 'map') || tab === 'book' || tab === 'money' || pend.size ? 'none' : '';
   $('#pendBar').style.display = pend.size ? 'flex' : 'none';
   if (pend.size) $('#pendN').textContent = `Не сохранено: ${pend.size} ${plural(pend.size, 'изменение', 'изменения', 'изменений')}`;
   const pc = mode === 'fb' ? pendingCount() : 0;
@@ -1424,11 +1520,14 @@ function openRouteEd(o = {}) {
     if (T.closest('[data-edaddx]')) { ed.add = null; return edPaint(); } });
   sh.addEventListener('submit', e => { if (ed && e.target.matches('[data-edaddform]')) { e.preventDefault(); edAddSubmit(e.target); } });
 }
-const KIND_L = { route: '✎ Маршрут', marks: '✓ Отметки в сводке', leave: '🔀 Кто-то едет отдельно', restore: '↩ Возврат как было' };
+const KIND_L = { route: '✎ Маршрут', marks: '✓ Отметки в сводке', leave: '🔀 Кто-то едет отдельно', restore: '↩ Возврат как было', money: '💰 Настройки расходов' };
 const lgAgo = t => { const m = Math.round((Date.now() - t) / 6e4); if (m < 1) return 'только что'; if (m < 60) return m + ' мин назад'; const d = new Date(t);
   return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const dayLabel = t => { const k = key(new Date(t)), td = todayKey(); return k === td ? 'Сегодня' : k === addDays(td, -1) ? 'Вчера' : fmtDW(k); };
 function fmtV(k, v, sec) {
+  if (sec === 'expenses') { if (k === 'split') return (SPLITS.find(x => x[0] === v) || SPLITS[0])[1].toLowerCase(); if (v != null) {
+    if (k === 'cat') return (ECATS[v] || ECATS.other)[1].toLowerCase(); if (k === 'kind') return (EKIND[v] || EKIND.exp)[1].toLowerCase();
+    if (k === 'parts') return Object.values(v).join(' : '); if (k === 'amount' || k === 'rate') return String(v).replace('.', ','); } }
   if (v == null || v === '' || (Array.isArray(v) && !v.length)) return k === 'who' ? 'все' : '—';
   if (k === 'status') return v === 'todo' ? (sec === 'transport' ? 'не куплен' : 'ищем') : (sec === 'transport' ? 'куплен' : 'забронировано');
   if (k === 'done') return v ? 'да' : 'нет';
@@ -1446,6 +1545,7 @@ function chText(sec, [k, a, b]) {
     const plus = B.filter(x => !A.includes(x)), minus = A.filter(x => !B.includes(x));
     return `${FL[k]}: ${[...plus.map(x => '+' + x), ...minus.map(x => '−' + x)].join(', ')}`; }
   if (k === 'lat') return 'координаты';
+  if (k === 'money') return 'валюта, курсы или доли по умолчанию';
   if (k === 'text' || k === 'notes' || k === 'note') return FL[k] + ' изменён' + (k === 'notes' ? 'ы' : '');
   return `${FL[k]}: ${fmtV(k, a, sec)} → ${fmtV(k, b, sec)}`;
 }
@@ -1456,9 +1556,9 @@ function logItemHtml(it) {
   return alive && it.op !== 'del' ? `<button class="lgi" data-logopen="${it.sec}|${it.id}">${body}<span class="lgo">открыть ›</span></button>` : `<div class="lgi">${body}</div>`;
 }
 let logList = [], logN = 60, logF = '';
-const LOGF = [['', 'Все'], ['route', 'Маршрут'], ['transport', 'Билеты'], ['stays', 'Жильё'], ['other', 'Остальное']];
+const LOGF = [['', 'Все'], ['route', 'Маршрут'], ['transport', 'Билеты'], ['stays', 'Жильё'], ['expenses', 'Расходы'], ['other', 'Остальное']];
 const logMatch = e => !logF || (logF === 'route' ? e.kind === 'route' || e.kind === 'leave' || e.items.some(i => i.sec === 'stops')
-  : logF === 'other' ? e.items.some(i => !['stops', 'stays', 'transport'].includes(i.sec)) : e.items.some(i => i.sec === logF));
+  : logF === 'other' ? e.items.some(i => !['stops', 'stays', 'transport', 'expenses'].includes(i.sec)) : e.items.some(i => i.sec === logF));
 async function openLog(more) {
   if (!more) { logN = 60; ls.set('trip-logseen-' + TRIP, Date.now()); logNew = 0; render(); }
   if (!more) openSheet(`<h2>🕘 История изменений</h2><div class="empty">Загружаю…</div>`);
@@ -1760,6 +1860,425 @@ function renderBook() {
   $('#tab-book').innerHTML = h;
 }
 
+/* ---------------- расходы ----------------
+   Запись: { kind: exp (трата) | tr (перевод) | inc (доход), amount, cur, rate (сколько основной валюты за 1 единицу cur),
+   payer (кто платил / отдал / получил), recv (кому, для перевода), ppl (за кого), split: sh | ex | pc (нет = поровну),
+   parts (числа в порядке ppl), title, cat, date, note, files }. Долги считаются в основной валюте поездки (meta.money.base). */
+const CUR = { RUB:['₽','Рубль',0], USD:['$','Доллар',2], EUR:['€','Евро',2], THB:['฿','Бат',0], IDR:['Rp','Рупия',0], KZT:['₸','Тенге',0], MYR:['RM','Ринггит',2], VND:['₫','Донг',0],
+  SGD:['S$','Синг. доллар',2], CNY:['元','Юань',2], JPY:['¥','Иена',0], KRW:['₩','Вона',0], HKD:['HK$','Гонк. доллар',2], INR:['₹','Инд. рупия',0], LKR:['LKR','Ланк. рупия',0], PHP:['₱','Песо',0],
+  KHR:['៛','Риель',0], LAK:['₭','Кип',0], AED:['AED','Дирхам',2], TRY:['₺','Лира',0], GEL:['₾','Лари',2], AMD:['֏','Драм',0], AZN:['₼','Манат',2], BYN:['Br','Бел. рубль',2], UZS:['сум','Сум',0], KGS:['сом','Сом',0],
+  EGP:['E£','Егип. фунт',0], GBP:['£','Фунт',2], CHF:['CHF','Франк',2], RSD:['дин','Динар',0], MVR:['MVR','Руфия',2], AUD:['A$','Австр. доллар',2] };
+const CUR_OF = { 'Россия':'RUB','Казахстан':'KZT','Таиланд':'THB','Индонезия':'IDR','Вьетнам':'VND','Малайзия':'MYR','Камбоджа':'KHR','Лаос':'LAK','Сингапур':'SGD','Филиппины':'PHP','Шри-Ланка':'LKR','Китай':'CNY','Япония':'JPY',
+  'Южная Корея':'KRW','Корея':'KRW','Гонконг':'HKD','Индия':'INR','ОАЭ':'AED','Турция':'TRY','Грузия':'GEL','Армения':'AMD','Азербайджан':'AZN','Беларусь':'BYN','Узбекистан':'UZS','Киргизия':'KGS','Кыргызстан':'KGS','Египет':'EGP',
+  'Великобритания':'GBP','Швейцария':'CHF','Сербия':'RSD','Мальдивы':'MVR','Австралия':'AUD','США':'USD',
+  ...Object.fromEntries(['Италия','Испания','Франция','Германия','Греция','Португалия','Кипр','Австрия','Нидерланды','Финляндия','Черногория','Хорватия','Бельгия','Ирландия','Эстония','Латвия','Литва','Словения','Словакия','Мальта'].map(c => [c, 'EUR'])) };
+const ECATS = { food:['🍜','Еда'], home:['🏠','Жильё'], move:['🚕','Транспорт'], fun:['🎟','Развлечения'], shop:['🛍','Покупки'], other:['🧾','Другое'] };
+const ECAT_RE = { food:/еда|ужин|обед|завтрак|кафе|ресторан|кофе|продукт|бар |бар$|пиво|вино|вода|фрукт|пицц|суши|бургер|перекус|мороженое/i,
+  move:/такси|grab|грэб|bolt|байк|скутер|бензин|паром|автобус|билет|трансфер|машин|парков|метро|поезд|самол[её]т|лодк|катер/i,
+  home:/отел|жиль|airbnb|вилл|хостел|booking|букинг|квартир|апарт|гест/i, fun:/экскурс|массаж|вход|музей|дайв|тур |тур$|спа |спа$|кино|клуб|шоу|сноркл|с[её]рф|аттракц/i,
+  shop:/сувенир|одежд|магазин|рынок|симк|sim|аптек|подар|космет|шоппинг/i };
+const EKIND = { exp:['🧾','Трата'], tr:['🤝','Перевод'], inc:['💵','Доход'] };
+const SPLITS = [['eq','Поровну'],['sh','По долям'],['ex','По суммам'],['pc','По %']];
+
+const money = () => data.meta?.money || {};
+const baseCur = () => CUR[money().base] ? money().base : 'RUB';
+const curSym = c => CUR[c]?.[0] || c || '';
+const curDec = c => CUR[c]?.[2] ?? 2;
+const num = v => { if (typeof v === 'number') return isFinite(v) ? v : 0; const n = parseFloat(String(v ?? '').replace(/[\s  ]/g, '').replace(',', '.').replace(/[^0-9.]/g, '')); return isFinite(n) ? n : 0; };
+const rnd = (v, d = 0) => { const k = 10 ** d; return Math.round((v + Number.EPSILON) * k) / k || 0; };
+const fmtN = (v, d = 0) => { const x = rnd(v, d), a = Math.abs(x); return (x < 0 ? '−' : '') + a.toLocaleString('ru-RU', { minimumFractionDigits: d && a % 1 ? d : 0, maximumFractionDigits: d }); };
+const fmtM = (v, c = baseCur()) => fmtN(v, curDec(c)) + ' ' + curSym(c);
+const inpN = (v, d = 2) => v || v === 0 ? String(rnd(v, d)).replace('.', ',') : '';
+const sig = v => { const a = Math.abs(v); return fmtN(v, a >= 100 ? 0 : a >= 10 ? 1 : a >= 1 ? 2 : 4); };
+const rateUnit = r => r >= 0.1 ? 1 : r >= 0.0001 ? 1000 : 1e6;
+const rateTxt = (c, r, b = baseCur()) => { const u = rateUnit(r); return `${fmtN(u)} ${curSym(c)} = ${sig(r * u)} ${curSym(b)}`; };
+const defW = p => { const v = money().w?.[p]; return v == null ? 1 : +v || 0; };
+
+/* курсы валют: одна общая таблица «сколько валюты за 1 доллар», лежит на устройстве, обновляется раз в полдня */
+const FXK = 'trip-fx';
+let fx = (() => { try { return JSON.parse(ls.get(FXK)); } catch { return null; } })();
+async function loadFx(force) {
+  if (loadFx._busy || (!force && fx && Date.now() - fx.at < 12 * 36e5) || navigator.onLine === false) return false;
+  loadFx._busy = 1;
+  try {
+    for (const u of ['https://latest.currency-api.pages.dev/v1/currencies/usd.min.json', 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json']) {
+      try { const d = await (await fetch(u)).json(), t = d?.usd; if (!(t?.rub > 0)) continue;
+        const r = { USD: 1 }; for (const c of Object.keys(CUR)) if (t[c.toLowerCase()] > 0) r[c] = t[c.toLowerCase()];
+        fx = { at: Date.now(), date: d.date || todayKey(), r }; ls.set(FXK, JSON.stringify(fx)); return true; } catch {}
+    }
+  } finally { loadFx._busy = 0; }
+  return false;
+}
+const marketRate = (c, b = baseCur()) => c === b ? 1 : fx?.r?.[c] > 0 && fx.r[b] > 0 ? fx.r[b] / fx.r[c] : null;   // сколько b за 1 c
+const expList = () => list('expenses');
+const lastRate = c => { const l = expList().filter(e => e.cur === c && e.rate > 0).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0]; return l ? +l.rate : null; };
+const tripRate = c => c === baseCur() ? 1 : (+money().rates?.[c] || marketRate(c) || lastRate(c) || null);
+
+/* расчёт */
+const eRate = e => !e.cur || e.cur === baseCur() ? 1 : (+e.rate || 0);
+const eBase = e => (+e.amount || 0) * eRate(e);
+const eInv = (e, p) => e.payer === p || e.recv === p || (e.kind !== 'tr' && (e.ppl || []).includes(p));
+function eShares(e) {   // доля каждого в валюте траты
+  const ppl = e.ppl || [], A = +e.amount || 0, out = {}; if (!ppl.length) return out;
+  const P = e.parts ? ppl.map((_, i) => e.parts[i]) : null;
+  const w = ppl.map((p, i) => !P || !e.split || e.split === 'eq' ? 1 : Math.max(0, P[i] == null ? (e.split === 'sh' ? 1 : 0) : +P[i] || 0));
+  const S = w.reduce((a, b) => a + b, 0);
+  ppl.forEach((p, i) => { out[p] = S ? A * w[i] / S : A / ppl.length; });
+  return out;
+}
+function moneyCalc() {
+  const names = new Set(people()), bal = {}, paid = {}, cost = {}, held = {}, back = {}, given = {}, got = {}, cats = {}; let total = 0, n = 0;
+  const add = (o, k, v) => { o[k] = (o[k] || 0) + v; names.add(k); };
+  for (const e of expList()) {
+    const r = eRate(e), A = eBase(e); if (!(A > 0) || !e.payer) continue;
+    if (e.kind === 'tr') { if (!e.recv) continue; add(bal, e.payer, A); add(bal, e.recv, -A); add(given, e.payer, A); add(got, e.recv, A); continue; }
+    const sh = eShares(e); if (!Object.keys(sh).length) continue;
+    const sg = e.kind === 'inc' ? -1 : 1;
+    add(bal, e.payer, sg * A); add(sg > 0 ? paid : held, e.payer, A); total += sg * A; n++;
+    for (const [p, v] of Object.entries(sh)) { add(bal, p, -sg * v * r); add(sg > 0 ? cost : back, p, v * r); }
+    if (sg > 0) cats[e.cat || 'other'] = (cats[e.cat || 'other'] || 0) + A;
+  }
+  const net = {}; names.forEach(p => { net[p] = (cost[p] || 0) - (back[p] || 0); });   // доля человека в общих тратах с учётом доходов
+  return { names: [...names], bal, paid, cost, held, back, net, given, got, cats, total, n };
+}
+// кто кому переводит: как можно меньше переводов
+function settle(bal) {
+  const k = 10 ** curDec(baseCur());
+  const xs = Object.entries(bal).map(([p, v]) => [p, Math.round(v * k)]).filter(x => x[1]);
+  const res = xs.reduce((a, x) => a + x[1], 0);   // копейки от округления отдаём самой крупной сумме
+  if (res && xs.length) { xs.sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])); xs[0][1] -= res; }
+  const deb = xs.filter(x => x[1] < 0).map(x => [x[0], -x[1]]), cre = xs.filter(x => x[1] > 0), out = [];
+  for (const d of deb) { const c = cre.find(c => c[1] === d[1]); if (c) { out.push({ from: d[0], to: c[0], amount: d[1] / k }); d[1] = c[1] = 0; } }   // сначала точные пары
+  const by = (a, b) => b[1] - a[1];
+  for (;;) { const d = deb.filter(x => x[1] > 0).sort(by)[0], c = cre.filter(x => x[1] > 0).sort(by)[0]; if (!d || !c) break;
+    const v = Math.min(d[1], c[1]); out.push({ from: d[0], to: c[0], amount: v / k }); d[1] -= v; c[1] -= v; }
+  return out;
+}
+// кто был в поездке в этот день и какая там валюта: по маршруту
+const stopsOn = date => stopsSorted().filter(s => s.from && s.from <= date && (s.to || s.from) >= date);
+function pplOn(date) { const ss = stopsOn(date); if (!ss.length) return people(); const set = new Set(ss.flatMap(stopPpl)); return people().filter(p => set.has(p)); }
+const curOn = date => { const ss = stopsOn(date), c = CUR_OF[ss[ss.length - 1]?.country]; return CUR[c] ? c : null; };
+const defCur = date => { const c = curOn(date) || ls.get('trip-lastcur-' + TRIP); return CUR[c] ? c : baseCur(); };
+const expTitle = x => x.kind === 'tr' ? `перевод ${x.payer || '?'} → ${x.recv || '?'}, ${fmtM(+x.amount || 0, x.cur || baseCur())}` : `${x.title || (x.kind === 'inc' ? 'доход' : 'трата')}, ${fmtM(+x.amount || 0, x.cur || baseCur())}`;
+
+let moneySeg = ls.get('trip-mseg') || 'debts', mDeals = [];
+const mMine = () => !!(view === 'mine' && me);
+const mZero = () => 0.5 / 10 ** curDec(baseCur());
+const byDateDesc = (a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || 0) - (a.createdAt || 0);
+function expRow(e, mine) {
+  const base = baseCur(), k = e.kind || 'exp', ppl = e.ppl || [], everyone = people().every(p => ppl.includes(p));
+  let ic, title, sub, small = e.cur && e.cur !== base ? '≈ ' + fmtM(eBase(e)) : '';
+  if (k === 'tr') { ic = '🤝'; title = 'Перевод'; sub = `${av(e.payer)} ${esc(e.payer)} → ${av(e.recv)} ${esc(e.recv)}`; }
+  else { ic = k === 'inc' ? '💵' : (ECATS[e.cat] || ECATS.other)[0]; title = esc(e.title || (k === 'inc' ? 'Доход' : 'Трата'));
+    sub = `${av(e.payer)} ${esc(e.payer)} · ${k === 'inc' ? 'на' : 'за'} ${everyone ? 'всех' : `<span class="spp">${ppl.map(av).join('')}</span>`}`;
+    if (mine) small = ppl.includes(me) ? 'моя доля ' + fmtM((eShares(e)[me] || 0) * eRate(e)) : 'без меня'; }
+  return `<div class="mrow ${k}" data-exp="${e.id}"><span class="mic">${ic}</span><div class="grow"><div class="t">${title}${Object.keys(e.files || {}).length ? ' 📎' : ''}</div><div class="u">${sub}</div></div>
+    <div class="mr"><b>${k === 'inc' ? '+' : ''}${fmtM(+e.amount || 0, e.cur || base)}</b>${small ? `<small>${small}</small>` : ''}</div></div>`;
+}
+function renderMoney() {
+  const el = $('#tab-money'), all = expList(), base = baseCur();
+  if (!all.length) {
+    el.innerHTML = people().length < 2
+      ? `<div class="card mintro"><div class="big">👥</div><h3>Сначала добавь участников</h3><p>Чтобы делить траты, в поездке должно быть хотя бы двое.</p><button class="madd" data-openme>Добавить участников</button></div>`
+      : `<div class="card mintro"><div class="big">💰</div><h3>Общие траты</h3><p>Записывай, кто за что заплатил. Приложение само посчитает, кто кому сколько должен.</p>
+        <div class="msteps"><div><b>1</b>Кто-то заплатил за всех: ужин, такси, жильё</div><div><b>2</b>Записал трату: сколько и кто платил</div><div><b>3</b>В конце видно, кто кому переводит</div></div>
+        <button class="madd" data-expadd>＋ Записать первую трату</button>
+        <div class="muted">Считаем в валюте: ${esc(CUR[base][1])} (${esc(curSym(base))}) · <a href="#" data-mset>изменить</a><br>Работает и без интернета.</div></div>`;
+    return;
+  }
+  const c = moneyCalc(), z = mZero(), mine = mMine() && c.names.includes(me), gear = `<button class="mgear" data-mset aria-label="Настройки расходов">⚙️</button>`;
+  mDeals = settle(c.bal);
+  if (me) mDeals.sort((a, b) => (b.from === me || b.to === me) - (a.from === me || a.to === me));   // свои переводы первыми
+  const myB = c.bal[me] || 0, st = myB > z ? 'pos' : myB < -z ? 'neg' : 'zero', nP = c.names.filter(p => c.net[p] > z).length || 1;
+  let h = mine
+    ? `<div class="card mhero ${st}">${gear}<div class="l">${st === 'pos' ? 'Тебе должны вернуть' : st === 'neg' ? 'С тебя' : 'Ты в расчёте'}</div><div class="v">${st === 'zero' ? '🎉' : fmtM(Math.abs(myB))}</div>
+        <div class="s">Всего на всех <b>${fmtM(c.total)}</b> · твоя доля <b>${fmtM(c.net[me] || 0)}</b> · оплачено тобой <b>${fmtM(c.paid[me] || 0)}</b></div></div>`
+    : `<div class="card mhero">${gear}<div class="l">Всего потрачено</div><div class="v">${fmtM(c.total)}</div>
+        <div class="s">В среднем <b>${fmtM(c.total / nP)}</b> на человека · ${mDeals.length ? `до расчёта ${mDeals.length} ${plural(mDeals.length, 'перевод', 'перевода', 'переводов')}` : 'все в расчёте 🎉'}</div></div>`;
+  const nD = mine ? mDeals.filter(t => t.from === me || t.to === me).length : mDeals.length;
+  h += `<button class="madd" data-expadd>＋ Записать трату</button>
+    <div class="seg">${[['debts', '🤝 Кто кому' + (nD ? ' · ' + nD : '')], ['list', '🧾 Траты · ' + all.length], ['stats', '📊 Итоги']].map(([k, l]) => `<button data-mseg="${k}" class="${moneySeg === k ? 'on' : ''}">${l}</button>`).join('')}</div>`;
+
+  if (moneySeg === 'list') {
+    const L = all.filter(e => !mine || eInv(e, me)).sort(byDateDesc); let day = null, open = false;
+    if (!L.length) h += `<div class="empty"><b>🧾</b>Трат с твоим участием пока нет</div>`;
+    L.forEach(e => { if (e.date !== day) { day = e.date; if (open) h += `</div>`; open = true;
+        const sum = L.filter(x => x.date === day && (x.kind || 'exp') === 'exp').reduce((a, x) => a + (mine ? (eShares(x)[me] || 0) * eRate(x) : eBase(x)), 0);
+        h += `<div class="mday"><span>${day ? (day === todayKey() ? 'Сегодня, ' : '') + fmtDW(day) : 'Без даты'}</span><span>${sum ? (mine ? 'моя доля ' : '') + fmtM(sum) : ''}</span></div><div class="card mlist">`; }
+      h += expRow(e, mine); });
+    if (open) h += `</div>`;
+    if (mine && L.length < all.length) h += `<div class="muted mnote" style="text-align:center">Показаны траты с твоим участием. Все траты: переключатель «Все» сверху.</div>`;
+  } else if (moneySeg === 'stats') h += moneyStats(c, all, mine);
+  else {
+    const dl = mDeals.map((t, i) => ({ ...t, i })).filter(t => !mine || t.from === me || t.to === me);
+    h += dl.length ? dl.map(t => { const out = me && t.from === me, inn = me && t.to === me;
+      return `<div class="card mdebt ${out ? 'out' : inn ? 'in' : ''}">${out ? '<div class="mcap">Тебе нужно перевести</div>' : inn ? '<div class="mcap">Тебе переведут</div>' : ''}
+        <div class="md1"><span class="mdp">${av(t.from)}${esc(t.from)}</span><span class="marr">→</span><span class="mdp">${av(t.to)}${esc(t.to)}</span><b class="mdv">${fmtM(t.amount)}</b></div>
+        <button class="mdb" data-paydebt="${t.i}">✓ ${out ? 'Перевод сделан' : inn ? 'Мне вернули' : 'Отдано'}</button></div>`; }).join('')
+      : `<div class="card mok"><b>🎉</b>${mDeals.length ? 'У тебя долгов нет' : 'Все в расчёте, никто никому не должен'}</div>`;
+    if (mine && mDeals.length > dl.length) { const n = mDeals.length - dl.length; h += `<div class="muted mnote" style="text-align:center">У остальных ещё ${n} ${plural(n, 'перевод', 'перевода', 'переводов')}. Чтобы увидеть, переключи «Все» сверху.</div>`; }
+    const ps = [...c.names].sort((a, b) => (c.bal[b] || 0) - (c.bal[a] || 0)), mx = Math.max(1, ...ps.map(p => Math.abs(c.bal[p] || 0)));
+    h += `<div class="h2">Баланс каждого</div><div class="card mbals">${ps.map(p => { const b = c.bal[p] || 0, s = b > z ? 'pos' : b < -z ? 'neg' : '';
+      return `<div class="mbal" data-mperson="${esc(p)}">${av(p)}<span class="n">${esc(p)}${p === me ? ' <span class="muted">(ты)</span>' : ''}</span><span class="bar2">${s ? `<i class="${s}" style="width:${Math.abs(b) / mx * 50}%"></i>` : ''}</span><b class="${s ? 'c' + s : ''}">${s ? (b > 0 ? '+' : '') + fmtM(b) : '0'}</b></div>`; }).join('')}</div>
+      <div class="muted mnote">Зелёный плюс: человеку должны вернуть. Оранжевый минус: он должен отдать. Нажми на имя, чтобы увидеть, из чего сложилась сумма.</div>`;
+  }
+  el.innerHTML = h;
+}
+function moneyStats(c, all, mine) {
+  const ps = c.names.filter(p => c.net[p] || c.paid[p]).sort((a, b) => c.net[b] - c.net[a]), mx = Math.max(1, ...ps.map(p => c.net[p]));
+  const dates = all.filter(e => (e.kind || 'exp') === 'exp' && e.date).map(e => e.date).sort(), days = dates.length ? daysBetween(dates[0], dates[dates.length - 1]) + 1 : 1;
+  const cats = Object.entries(c.cats).sort((a, b) => b[1] - a[1]), catT = cats.reduce((a, x) => a + x[1], 0) || 1, nP = ps.filter(p => c.net[p] > 0).length || 1;
+  return `${mine ? `<div class="card mtot"><div class="mcap">Всего потрачено на всех</div><div class="v">${fmtM(c.total)}</div><div class="muted">${c.n} ${plural(c.n, 'запись', 'записи', 'записей')} · в среднем ${fmtM(c.total / nP)} на человека${days > 1 ? ` · ${fmtM(c.total / days)} в день` : ''}</div></div>`
+      : days > 1 ? `<div class="muted mnote">${c.n} ${plural(c.n, 'запись', 'записи', 'записей')} за ${days} ${plural(days, 'день', 'дня', 'дней')} · в среднем ${fmtM(c.total / days)} в день</div>` : ''}
+    <div class="h2">Кто сколько потратил</div><div class="card mbals">${ps.map(p => `<div class="mpr" data-mperson="${esc(p)}">${av(p)}<div class="grow"><div class="n">${esc(p)}</div><div class="mb2"><i style="width:${Math.max(0, c.net[p]) / mx * 100}%;--c:${pColor(p)}"></i></div></div>
+      <div class="mr"><b>${fmtM(c.net[p])}</b><small>оплачено ${fmtM(c.paid[p] || 0)}</small></div></div>`).join('')}</div>
+    <div class="muted mnote">Крупная сумма: доля человека в общих тратах. «Оплачено»: сколько он заплатил сам.</div>
+    ${cats.length ? `<div class="h2">На что ушло</div><div class="card mbals">${cats.map(([k, v]) => `<div class="mpr"><span class="mic">${(ECATS[k] || ECATS.other)[0]}</span><div class="grow"><div class="n">${(ECATS[k] || ECATS.other)[1]}</div><div class="mb2"><i style="width:${v / catT * 100}%"></i></div></div>
+      <div class="mr"><b>${fmtM(v)}</b><small>${Math.round(v / catT * 100)}%</small></div></div>`).join('')}</div>` : ''}
+    <div class="btns" style="margin:14px 2px 0"><button class="chip link" data-mcopy>📋 Скопировать итог в чат</button><button class="chip" data-mcsv>⬇️ Таблица для Excel</button><button class="chip" data-mset>⚙️ Валюта, курсы, доли</button></div>`;
+}
+function openPerson(p) {
+  const c = moneyCalc(), b = c.bal[p] || 0, z = mZero(), s = b > z ? 'pos' : b < -z ? 'neg' : '';
+  const line = (l, v, cls = '') => `<div class="mln ${cls}"><span>${l}</span><b>${v}</b></div>`;
+  const rows = expList().filter(e => eInv(e, p)).sort(byDateDesc).map(e => { const k = e.kind || 'exp', A = eBase(e), sh = k === 'tr' ? 0 : (eShares(e)[p] || 0) * eRate(e), pay = e.payer === p ? A : 0;
+    const eff = k === 'tr' ? (e.payer === p ? A : -A) : k === 'inc' ? sh - pay : pay - sh;
+    const why = k === 'tr' ? (e.payer === p ? `отдано: ${esc(e.recv)}` : `получено: ${esc(e.payer)}`) : k === 'inc' ? [sh ? 'доля ' + fmtM(sh) : '', pay ? 'на руках ' + fmtM(pay) : ''].filter(Boolean).join(' − ') : [pay ? 'оплата ' + fmtM(pay) : '', sh ? 'доля ' + fmtM(sh) : ''].filter(Boolean).join(' − ');
+    return `<div class="mrow" data-exp="${e.id}"><span class="mic">${k === 'tr' ? '🤝' : k === 'inc' ? '💵' : (ECATS[e.cat] || ECATS.other)[0]}</span><div class="grow"><div class="t">${k === 'tr' ? 'Перевод' : esc(e.title || '')}</div><div class="u">${fmtD(e.date)} · ${why}</div></div>
+      <div class="mr"><b class="${eff > z ? 'cpos' : eff < -z ? 'cneg' : ''}">${eff > 0 ? '+' : ''}${fmtM(eff)}</b></div></div>`; }).join('');
+  openSheet(`<h2 style="display:flex;align-items:center;gap:8px">${av(p)} ${esc(p)}</h2>
+    <div class="sec">${line('Оплачено за общее', (c.paid[p] ? '+' : '') + fmtM(c.paid[p] || 0))}${line('Доля в общих тратах', fmtM(-(c.cost[p] || 0)))}${c.back[p] ? line('Доля в общих доходах', '+' + fmtM(c.back[p])) : ''}${c.held[p] ? line('Общие деньги на руках', fmtM(-c.held[p])) : ''}
+      ${c.given[p] ? line('Отдано переводами', '+' + fmtM(c.given[p])) : ''}${c.got[p] ? line('Получено переводами', fmtM(-c.got[p])) : ''}
+      ${line(s === 'pos' ? 'Итого должны вернуть' : s === 'neg' ? 'Итого нужно отдать' : 'Итого: в расчёте', `<span class="${s ? 'c' + s : ''}">${fmtM(Math.abs(b))}</span>`, 'tot')}</div>
+    <div class="muted mnote">Считаем так: сколько человек оплатил сам, минус его доля в общих тратах. Переводы и общие доходы тоже учтены.</div>
+    <div class="h2">Из чего сложилось</div>${rows ? `<div class="sec">${rows}</div>` : '<div class="empty">Записей нет</div>'}`);
+}
+function moneyText() {
+  const c = moneyCalc(), deals = settle(c.bal), ps = c.names.filter(p => c.net[p] || c.paid[p]);
+  const L = [`💰 ${data.meta?.title || 'Поездка'}: расходы`, `Всего: ${fmtM(c.total)}`, '', deals.length ? 'Кто кому переводит:' : 'Все в расчёте 🎉'];
+  deals.forEach(t => L.push(`• ${t.from} → ${t.to}: ${fmtM(t.amount)}`));
+  if (ps.length) { L.push('', 'Доля каждого в общих тратах:'); ps.forEach(p => L.push(`• ${p}: ${fmtM(c.net[p])} (оплачено ${fmtM(c.paid[p] || 0)})`)); }
+  return L.join('\n').replace(/ /g, ' ');
+}
+function moneyCsv() {
+  const base = baseCur(), c = moneyCalc(), P = c.names, n = (v, d = 2) => String(rnd(+v || 0, d)).replace('.', ',');
+  const q = v => { const s = String(v ?? ''); return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const rows = [['Дата', 'Вид', 'Название', 'Категория', 'Сумма', 'Валюта', 'Курс', 'Сумма, ' + base, 'Кто платил', 'Кому / за кого', ...P.map(p => 'Доля: ' + p), 'Комментарий']];
+  expList().sort((a, b) => -byDateDesc(a, b)).forEach(e => { const k = e.kind || 'exp', sh = k === 'tr' ? {} : eShares(e), r = eRate(e);
+    rows.push([e.date || '', EKIND[k][1], k === 'tr' ? 'Перевод' : e.title || '', k === 'exp' ? (ECATS[e.cat] || ECATS.other)[1] : '', n(e.amount), e.cur || base, n(r, 6), n(eBase(e)), e.payer || '', k === 'tr' ? e.recv || '' : (e.ppl || []).join(', '),
+      ...P.map(p => sh[p] ? n((k === 'inc' ? -1 : 1) * sh[p] * r) : ''), e.note || '']); });
+  rows.push([], ['Баланс, ' + base + ' (плюс: должны вернуть, минус: нужно отдать)'], ...P.map(p => [p, n(c.bal[p] || 0)]), [], ['Кто кому переводит, ' + base], ...settle(c.bal).map(t => [t.from, t.to, n(t.amount)]));
+  return '﻿' + rows.map(r => r.map(q).join(';')).join('\r\n');
+}
+async function moneyExport() {
+  const name = `rashody-${todayKey()}.csv`, blob = new Blob([moneyCsv()], { type: 'text/csv;charset=utf-8' });
+  try { const f = new File([blob], name, { type: 'text/csv' }); if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: 'Расходы' }); return; } } catch (err) { if (err?.name === 'AbortError') return; }
+  const l = document.createElement('a'); l.href = URL.createObjectURL(blob); l.download = name; l.click(); toast('Таблица скачана: ' + name);
+}
+function openMoneySet() {
+  const base = baseCur(), m = money(), W = m.w || {};
+  const used = [...new Set([...expList().map(e => e.cur), ...stopsSorted().map(s => CUR_OF[s.country])].filter(c => CUR[c] && c !== base))];
+  openSheet(`<form id="mSetForm" autocomplete="off"><h2>⚙️ Настройки расходов</h2>
+    <label class="f"><span>В какой валюте считаем долги</span><select name="base">${Object.entries(CUR).map(([c, [s, n]]) => `<option value="${c}" ${c === base ? 'selected' : ''}>${esc(n)} · ${esc(s)}</option>`).join('')}</select></label>
+    ${used.length ? `<div class="h2">Курсы</div><div class="muted mnote">${fx ? `Курс подставляется сам, по данным на ${fmtD(fx.date)}.` : 'Курсы подгрузятся, когда появится интернет.'} Меняли деньги по другому курсу? Впиши свой: он будет подставляться в новые траты.</div>
+      <div class="sec">${used.map(c => { const mr = marketRate(c), u = rateUnit(+m.rates?.[c] || mr || 1);
+        return `<label class="mrate"><span class="ru">${fmtN(u)} ${esc(curSym(c))} =</span><input name="r_${c}" data-u="${u}" inputmode="decimal" placeholder="${mr ? sig(mr * u) : 'курс'}" value="${m.rates?.[c] ? inpN(m.rates[c] * u, 4) : ''}"><span>${esc(curSym(base))}</span></label>`; }).join('')}</div>
+      ${expList().length ? `<label class="mchk"><input type="checkbox" name="recalc"> Пересчитать по этим курсам и уже записанные траты</label>` : ''}` : ''}
+    <div class="h2">Доли по умолчанию</div><div class="muted mnote">Обычно у каждого одна доля. Если кто-то платит за двоих, поставь ему 2, ребёнку можно 0,5. Так будут делиться новые траты.</div>
+    <div class="sec">${people().map((p, i) => `<label class="mrate">${av(p)}<span class="grow">${esc(p)}</span><span>×</span><input name="w_${i}" inputmode="decimal" value="${inpN(defW(p), 2)}" style="max-width:76px;flex:none"></label>`).join('')}</div>
+    <div class="actions"><button type="button" class="btn" data-close>Отмена</button><button class="btn pri">Сохранить</button></div></form>`);
+}
+function moneySetSave(f) {
+  const old = baseCur(), nb = f.elements.base.value, rates = {}, w = {}, all = expList();
+  f.querySelectorAll('input[name^="r_"]').forEach(i => { const v = num(i.value); if (v > 0) rates[i.name.slice(2)] = +(v / +i.dataset.u).toPrecision(8); });
+  people().forEach((p, i) => { const el = f.elements['w_' + i], v = num(el.value); if (el.value.trim() !== '' && v !== 1 && !/[.$#\[\]\/]/.test(p)) w[p] = v; });
+  const next = { base: nb }; if (nb === old && Object.keys(rates).length) next.rates = rates; if (Object.keys(w).length) next.w = w;
+  const apply = () => { withLog('money', () => {
+      if (nb !== old) { const k = marketRate(old, nb);   // другая основная валюта: все траты переводим по сегодняшнему курсу
+        all.forEach(e => { const c = e.cur || old; put('expenses', e.id, { ...data.expenses[e.id], cur: c, rate: c === nb ? undefined : +((c === old ? 1 : +e.rate || 0) * k).toPrecision(8) }); }); }
+      else if (f.elements.recalc?.checked) all.forEach(e => { const r = e.cur && e.cur !== old ? rates[e.cur] || marketRate(e.cur) : null; if (r && Math.abs(r / (+e.rate || 1) - 1) > 1e-9) put('expenses', e.id, { ...data.expenses[e.id], rate: +r.toPrecision(8) }); });
+      putMeta({ ...data.meta, money: next }); });
+    closeSheet(); toast('Сохранено'); };
+  if (nb !== old && all.length) {
+    if (!marketRate(old, nb)) return toast('Нужен интернет, чтобы узнать курс для пересчёта');
+    return confirmBox(`Считать долги в валюте «${CUR[nb][1]}» (${curSym(nb)})? Все записанные траты пересчитаются по сегодняшнему курсу.`, ok => ok && apply());
+  }
+  apply();
+}
+
+/* --- форма траты, перевода, дохода --- */
+let exf = null;
+const exNames = () => [...new Set([...people(), ...exf.ppl, exf.payer, exf.recv].filter(Boolean))];
+function exCurs() { const l = [...new Set([baseCur(), ...stopsSorted().map(s => CUR_OF[s.country]), ls.get('trip-lastcur-' + TRIP)].filter(c => CUR[c]))].slice(0, 6); if (!l.includes(exf.cur)) l.push(exf.cur); return l; }
+const exW = p => { const v = exf.parts[p]; return v == null || v === '' ? (exf.split === 'sh' ? defW(p) : 0) : num(v); };
+const exTol = () => 0.5 / 10 ** curDec(exf.cur) + 1e-9;
+function openExpense(id, preset = {}) {
+  const old = id ? data.expenses?.[id] : null; if (id && !old) return toast('Запись не найдена');
+  if (!id && people().length < 2) { toast('Сначала добавь участников'); return openMe(false); }
+  const src = old || preset, date = src.date || todayKey(), base = baseCur(), kind = src.kind || 'exp';
+  const hasW = people().some(p => defW(p) !== 1);
+  const st = { id: id || null, kind, amount: src.amount ? inpN(+src.amount, 2) : '', cur: CUR[src.cur] ? src.cur : kind === 'tr' ? base : defCur(date), rate: null, manual: !!old,
+    title: src.title || '', cat: src.cat || '', catAuto: !old, payer: src.payer || (people().includes(me) ? me : people()[0]) || '', recv: src.recv || '',
+    ppl: src.ppl ? [...src.ppl] : pplOn(date), split: src.split || (hasW && !old ? 'sh' : 'eq'), parts: {}, date, note: src.note || '', files: { ...(src.files || {}) }, rm: [], picked: [],
+    more: !!(src.note || Object.keys(src.files || {}).length), touched: !!src.ppl, curTouched: !!src.cur, upd: old?.updatedAt, updBy: old?.updatedBy };
+  if (src.parts && src.ppl) src.ppl.forEach((p, i) => { if (src.parts[i] != null) st.parts[p] = inpN(+src.parts[i], 4); });
+  exf = st; st.rate = old?.rate && old.cur === st.cur ? +old.rate : tripRate(st.cur);
+  const html = exHtml(), foot = exFoot();
+  openSheet(html, { foot }); exf = st;
+  if (!id && !st.amount) setTimeout(() => { if (exf === st) $('#exAmt')?.focus(); }, 350);
+  loadFx().then(ok => { if (ok && exf === st && !st.rate && st.cur !== baseCur()) { exSync(); st.rate = tripRate(st.cur); exPaint(); } });
+}
+function exShareCalc() {   // доли в валюте траты по тому, что сейчас в форме
+  const A = num(exf.amount), s = exf.split, w = exf.ppl.map(p => s === 'eq' ? 1 : exW(p)), S = w.reduce((a, b) => a + b, 0), out = {};
+  exf.ppl.forEach((p, i) => { out[p] = s === 'ex' ? w[i] : S ? A * w[i] / S : 0; });
+  return { out, S, A };
+}
+function exHintHtml() {
+  const { S, A } = exShareCalc(), c = exf.cur, n = exf.ppl.length, r = c === baseCur() ? 0 : +exf.rate || 0, also = v => r ? ` <span class="muted">≈ ${fmtM(v * r)}</span>` : '';
+  if (!n) return `<span class="bad">Отметь хотя бы одного человека</span>`;
+  if (exf.split === 'eq') return n === 1 ? `Вся сумма на одного человека` : A ? `Поровну: по <b>${fmtM(A / n, c)}</b> с каждого${also(A / n)}` : `Поделим поровну на ${n} чел.`;
+  if (exf.split === 'sh') return S ? (A ? `Одна доля: <b>${fmtM(A / S, c)}</b>${also(A / S)}` : 'У кого больше долей, тот платит больше') : `<span class="bad">Поставь хотя бы одну долю</span>`;
+  if (exf.split === 'ex') { const rest = A - S; return !A ? 'Впиши, сколько пришлось на каждого' : Math.abs(rest) < exTol() ? `<span class="good">Всё распределено ✓</span>` : rest > 0 ? `<span class="bad">Осталось распределить ${fmtM(rest, c)}</span>` : `<span class="bad">Лишние ${fmtM(-rest, c)}</span>`; }
+  const rest = 100 - S; return Math.abs(rest) < 0.01 ? `<span class="good">Ровно 100% ✓</span>` : rest > 0 ? `<span class="bad">Осталось распределить ${fmtN(rest, 2)}%</span>` : `<span class="bad">Лишние ${fmtN(-rest, 2)}%</span>`;
+}
+function exSplitHtml() {
+  const s = exf.split, c = exf.cur, { out } = exShareCalc();
+  let h = `<div class="mhint" id="exHint">${exHintHtml()}</div><div class="chips msp">${SPLITS.map(([k, l]) => `<button type="button" class="chip ${s === k ? 'on' : ''}" data-exsplit="${k}">${l}</button>`).join('')}</div>`;
+  if (s !== 'eq' && exf.ppl.length) h += `<div class="mparts">${exf.ppl.map((p, i) => { const v = exf.parts[p] ?? (s === 'sh' ? inpN(defW(p), 2) : '');
+      return `<div class="mpt">${av(p)}<span class="grow">${esc(p)}</span>${s === 'sh'
+        ? `<button type="button" class="mst" data-exstep="${i}|-1" aria-label="Меньше">−</button><input data-expart="${i}" inputmode="decimal" value="${esc(v)}" class="mw"><button type="button" class="mst" data-exstep="${i}|1" aria-label="Больше">+</button>`
+        : `<input data-expart="${i}" inputmode="decimal" value="${esc(v)}" placeholder="0"><span class="mu">${s === 'pc' ? '%' : esc(curSym(c))}</span>`}${s !== 'ex' ? `<span class="mres" data-exres="${i}">${fmtM(out[p] || 0, c)}</span>` : ''}</div>`; }).join('')}
+      ${s === 'ex' ? `<button type="button" class="chip link" data-exfill>Остаток поровну на пустые строки</button>` : ''}</div>`;
+  return h;
+}
+const exRateHint = () => { const r = +exf.rate || 0; return r ? `Курс ${rateTxt(exf.cur, r)}${exf.manual && !exf.id ? ' (твой)' : ''}. Платили по другому? Поправь сумму выше.` : `Курса под рукой нет: впиши, сколько это в ${curSym(baseCur())}`; };
+function exConvHtml() {
+  const base = baseCur(); if (exf.cur === base) return '';
+  const A = num(exf.amount), r = +exf.rate || 0;
+  return `<div class="mconv"><span>Это</span><input id="exBase" inputmode="decimal" placeholder="сколько в ${esc(curSym(base))}?" value="${A && r ? inpN(A * r, curDec(base)) : ''}"><b>${esc(curSym(base))}</b></div><div class="hint-s" id="exRateTxt" style="margin:-2px 2px 4px">${esc(exRateHint())}</div>`;
+}
+function exHtml() {
+  const k = exf.kind, P = exNames(), today = todayKey(), curs = exCurs(), rest = Object.keys(CUR).filter(c => !curs.includes(c));
+  const who = (attr, on) => `<div class="pp mpp">${P.map(p => `<button type="button" class="${on(p) ? 'on' : ''}" data-${attr}="${esc(p)}">${av(p)}${esc(p)}</button>`).join('')}</div>`;
+  const fl = Object.entries(exf.files).filter(([f]) => !exf.rm.includes(f)), allOn = P.every(p => exf.ppl.includes(p));
+  let h = `<form id="expForm" autocomplete="off" novalidate>
+    <div class="seg mkind">${Object.entries(EKIND).map(([v, [i, l]]) => `<button type="button" data-exkind="${v}" class="${k === v ? 'on' : ''}">${i} ${l}</button>`).join('')}</div>
+    ${k === 'inc' ? `<div class="muted mnote">Деньги пришли на всех: вернули залог, кэшбэк, что-то продали. Сумма уменьшит общие траты.</div>` : k === 'tr' ? `<div class="muted mnote">Один участник отдал деньги другому, чтобы закрыть долг.</div>` : ''}
+    <div class="mq">${k === 'tr' ? 'Сколько отдали?' : k === 'inc' ? 'Сколько пришло?' : 'Сколько заплатили?'}</div>
+    <div class="mamt"><input id="exAmt" inputmode="decimal" placeholder="0" value="${esc(exf.amount)}" aria-label="Сумма"><span>${esc(curSym(exf.cur))}</span></div>
+    <div class="chips mcurs">${curs.map(c => `<button type="button" class="chip ${c === exf.cur ? 'on' : ''}" data-excur="${c}">${esc(curSym(c))} ${esc(CUR[c][1])}</button>`).join('')}
+      <select id="exCurSel" class="msel" aria-label="Другая валюта"><option value="">другая…</option>${rest.map(c => `<option value="${c}">${esc(CUR[c][1])} · ${esc(curSym(c))}</option>`).join('')}</select></div>
+    ${exConvHtml()}`;
+  if (k === 'tr') h += `<div class="mq">Кто отдал?</div>${who('expayer', p => p === exf.payer)}<div class="mq">Кому?</div>${who('exrecv', p => p === exf.recv)}`;
+  else h += `<div class="mq">${k === 'inc' ? 'За что пришли деньги?' : 'За что?'}</div>
+    <input id="exTitle" placeholder="${k === 'inc' ? 'Например: вернули залог за байк' : 'Например: ужин, такси, продукты'}" value="${esc(exf.title)}" enterkeyhint="done" aria-label="Название">
+    ${k === 'exp' ? `<div class="chips" style="margin-top:8px">${Object.entries(ECATS).map(([c, [i, l]]) => `<button type="button" class="chip ${exf.cat === c ? 'on' : ''}" data-excat="${c}">${i} ${l}</button>`).join('')}</div>` : ''}
+    <div class="mq">${k === 'inc' ? 'У кого теперь эти деньги?' : 'Кто платил?'}</div>${who('expayer', p => p === exf.payer)}
+    <div class="mq"><span>${k === 'inc' ? 'На кого делим?' : 'За кого?'}</span><button type="button" class="mall" data-exall>${allOn ? 'снять всех' : 'выбрать всех'}</button></div>${who('exppl', p => exf.ppl.includes(p))}
+    <div id="exSplit">${exSplitHtml()}</div>`;
+  h += `<div class="mq">Когда?</div><div class="mdate"><button type="button" class="chip ${exf.date === today ? 'on' : ''}" data-exday="0">Сегодня</button><button type="button" class="chip ${exf.date === addDays(today, -1) ? 'on' : ''}" data-exday="-1">Вчера</button><input type="date" id="exDate" value="${esc(exf.date)}" aria-label="Дата"></div>
+    <details class="adv" id="exMore" ${exf.more ? 'open' : ''}><summary>Комментарий и фото чека ▾</summary>
+      <textarea id="exNote" placeholder="Комментарий">${esc(exf.note)}</textarea>
+      ${fl.length ? `<div class="btns">${fl.map(([fid, m]) => `<span class="chip"><a href="#" data-file="${fid}">📎 ${m.type?.includes('pdf') ? 'PDF' : 'Фото'}${m.by ? ' · ' + esc(m.by) : ''}</a><button type="button" class="x" data-exrmf="${fid}" aria-label="Убрать файл">×</button></span>`).join('')}</div>` : ''}
+      <label class="drop" style="margin-top:8px">📎 Прикрепить фото чека<small>${exf.picked.length ? `Выбрано файлов: ${exf.picked.length}. Загрузятся при сохранении` : 'загружается, когда есть интернет'}</small><input type="file" id="exFiles" accept="image/*,application/pdf" multiple hidden></label>
+    </details>
+    ${exf.upd ? `<div class="muted" style="margin-top:10px;text-align:center" data-log>🕘 Изменено ${new Date(exf.upd).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}${exf.updBy ? ' · ' + esc(exf.updBy) : ''}</div>` : ''}</form>`;
+  return h;
+}
+const exFoot = () => `<div class="mfoot">${exf.id ? '<button type="button" class="btn del" data-exdel aria-label="Удалить">🗑</button>' : ''}<button type="button" class="btn" data-close>Отмена</button><button type="button" class="btn pri" data-exsave>${exf.id ? 'Сохранить' : exf.kind === 'tr' ? 'Записать перевод' : exf.kind === 'inc' ? 'Записать доход' : 'Записать трату'}</button></div>`;
+function exSync() {   // забираем в состояние то, что набрано в полях
+  if (!exf || !$('#expForm')) return;
+  exf.amount = $('#exAmt').value.trim();
+  if ($('#exTitle')) exf.title = $('#exTitle').value;
+  exf.note = $('#exNote').value; exf.more = $('#exMore').open;
+  document.querySelectorAll('#expForm [data-expart]').forEach(i => { exf.parts[exf.ppl[+i.dataset.expart]] = i.value.trim(); });
+}
+function exPaint() { const inn = $('#sheetIn'), y = inn.scrollTop; inn.innerHTML = exHtml(); inn.scrollTop = y; $('#sheetFoot').innerHTML = exFoot(); sheetDirty = true; }
+function exLive() {
+  const hint = $('#exHint'); if (hint) hint.innerHTML = exHintHtml();
+  const { out } = exShareCalc(); document.querySelectorAll('#expForm [data-exres]').forEach(el => { el.textContent = fmtM(out[exf.ppl[+el.dataset.exres]] || 0, exf.cur); });
+}
+function exSetCur(c) { if (!CUR[c]) return; exSync(); exf.cur = c; exf.curTouched = true; exf.rate = tripRate(c); exf.manual = false; exPaint(); }
+function exSetDate(d) {
+  exSync(); exf.date = d || todayKey();
+  if (!exf.id && exf.kind !== 'tr') { if (!exf.touched) exf.ppl = pplOn(exf.date); if (!exf.curTouched) { const c = defCur(exf.date); if (c !== exf.cur) { exf.cur = c; exf.rate = tripRate(c); exf.manual = false; } } }
+  exPaint();
+}
+function exInput(e) {
+  const t = e.target, base = baseCur(); sheetDirty = true;
+  if (t.id === 'exAmt') { exf.amount = t.value; const b = $('#exBase'), A = num(t.value), r = +exf.rate || 0; if (b && r) b.value = A ? inpN(A * r, curDec(base)) : ''; exLive(); }
+  else if (t.id === 'exBase') { const A = num(exf.amount), v = num(t.value); if (A > 0 && v > 0) { exf.rate = v / A; exf.manual = true; $('#exRateTxt').textContent = exRateHint(); exLive(); } }
+  else if (t.dataset.expart != null) { exf.parts[exf.ppl[+t.dataset.expart]] = t.value; exLive(); }
+  else if (t.id === 'exTitle') { exf.title = t.value;
+    if (exf.catAuto && exf.kind === 'exp') { const g = Object.keys(ECAT_RE).find(k => ECAT_RE[k].test(t.value)) || ''; if (g !== exf.cat) { exf.cat = g; document.querySelectorAll('#expForm [data-excat]').forEach(b => b.classList.toggle('on', b.dataset.excat === g)); } } }
+}
+function exChange(e) {
+  const t = e.target;
+  if (t.id === 'exDate') return exSetDate(t.value);
+  if (t.id === 'exCurSel' && t.value) return exSetCur(t.value);
+  if (t.id === 'exFiles') { exSync(); exf.picked.push(...t.files); exf.more = true; exPaint(); }
+}
+async function exSave() {
+  const st = exf; if (!st || st.busy) return; exSync();
+  const base = baseCur(), A = rnd(num(st.amount), 2), k = st.kind; let rate;
+  if (!(A > 0)) { toast('Впиши сумму'); $('#exAmt')?.focus(); return; }
+  if (st.cur !== base) { rate = +st.rate || 0; if (!(rate > 0)) { toast(`Впиши, сколько это в ${curSym(base)}`); $('#exBase')?.focus(); return; } }
+  if (!st.payer) return toast(k === 'tr' ? 'Выбери, кто отдал' : k === 'inc' ? 'Выбери, у кого деньги' : 'Выбери, кто платил');
+  const old = st.id ? data.expenses?.[st.id] : null;
+  const out = { kind: k, amount: A, cur: st.cur, rate: rate ? +rate.toPrecision(8) : undefined, payer: st.payer, date: st.date || todayKey(), note: st.note.trim(), createdAt: old?.createdAt || Date.now(), createdBy: old ? old.createdBy : author() || undefined };
+  if (k === 'tr') { if (!st.recv || st.recv === st.payer) return toast('Выбери, кому отдали'); out.recv = st.recv; }
+  else {
+    const ppl = exNames().filter(p => st.ppl.includes(p)); if (!ppl.length) return toast('Отметь, за кого');
+    out.ppl = ppl; out.title = st.title.trim() || (k === 'inc' ? 'Доход' : ECATS[st.cat]?.[1] || 'Трата'); if (k === 'exp') out.cat = st.cat || 'other';
+    if (st.split !== 'eq') { const w = ppl.map(exW), S = w.reduce((a, b) => a + b, 0);
+      if (st.split === 'sh' && !(S > 0)) return toast('Поставь хотя бы одну долю');
+      if (st.split === 'ex' && Math.abs(A - S) >= exTol()) return toast(A > S ? `Осталось распределить ${fmtM(A - S, st.cur)}` : `Суммы больше общей на ${fmtM(S - A, st.cur)}`);
+      if (st.split === 'pc' && Math.abs(100 - S) >= 0.01) return toast(S < 100 ? `Осталось распределить ${fmtN(100 - S, 2)}%` : 'Проценты в сумме больше 100');
+      if (!(st.split === 'sh' && w.every(x => x === w[0]))) { out.split = st.split; out.parts = w.map(x => rnd(x, 4)); } }   // равные доли и есть «поровну»
+  }
+  const files = { ...st.files }; st.rm.forEach(f => { delete files[f]; });
+  if (st.picked.length) { st.busy = 1; const btn = document.querySelector('[data-exsave]'), lbl = btn?.textContent; if (btn) { btn.disabled = true; btn.textContent = 'Загружаю…'; }
+    try { for (const f of st.picked) { const [fid, m] = await saveFile(f); files[fid] = m; } }
+    catch (err) { st.busy = 0; toast(err.message || 'Не удалось загрузить файл'); if (btn) { btn.disabled = false; btn.textContent = lbl; } return; }
+    st.busy = 0; }
+  st.rm.forEach(removeFile);
+  out.files = Object.keys(files).length ? files : undefined;
+  if (k !== 'tr') ls.set('trip-lastcur-' + TRIP, st.cur);
+  put('expenses', st.id || uid(), out); haptic('medium'); if (exf === st) closeSheet();
+  toast(old ? 'Сохранено' : k === 'tr' ? 'Перевод записан' : k === 'inc' ? 'Доход записан' : 'Трата записана');
+}
+// нажатия во вкладке «Расходы» и в форме траты; true = нажатие обработано
+function moneyClick(e, T) {
+  const q = s => T.closest(s); let b;
+  if (exf && q('#sheet')) {
+    if ((b = q('[data-exkind]'))) { exSync(); exf.kind = b.dataset.exkind; if (exf.kind === 'tr' && !exf.curTouched) { exf.cur = baseCur(); exf.rate = 1; } exPaint(); return true; }
+    if ((b = q('[data-excur]'))) { exSetCur(b.dataset.excur); return true; }
+    if ((b = q('[data-excat]'))) { exSync(); exf.cat = exf.cat === b.dataset.excat ? '' : b.dataset.excat; exf.catAuto = false; exPaint(); return true; }
+    if ((b = q('[data-expayer]'))) { exSync(); exf.payer = b.dataset.expayer; if (exf.recv === exf.payer) exf.recv = ''; exPaint(); return true; }
+    if ((b = q('[data-exrecv]'))) { exSync(); if (b.dataset.exrecv === exf.payer) { toast('Нельзя перевести самому себе'); return true; } exf.recv = b.dataset.exrecv; exPaint(); return true; }
+    if ((b = q('[data-exppl]'))) { exSync(); const p = b.dataset.exppl; exf.ppl = exf.ppl.includes(p) ? exf.ppl.filter(x => x !== p) : exNames().filter(x => x === p || exf.ppl.includes(x)); exf.touched = true; exPaint(); return true; }
+    if (q('[data-exall]')) { exSync(); const all = exNames(); exf.ppl = all.every(p => exf.ppl.includes(p)) ? [] : all; exf.touched = true; exPaint(); return true; }
+    if ((b = q('[data-exsplit]'))) { exSync(); if (exf.split !== b.dataset.exsplit) { exf.split = b.dataset.exsplit; exf.parts = {}; } exPaint(); return true; }
+    if ((b = q('[data-exstep]'))) { exSync(); const [i, d] = b.dataset.exstep.split('|'), p = exf.ppl[+i], v = exW(p); exf.parts[p] = inpN(Math.max(0, +d > 0 ? (v < 1 ? v + .5 : v + 1) : (v <= 1 ? v - .5 : v - 1)), 2); exPaint(); return true; }
+    if (q('[data-exfill]')) { exSync(); const A = num(exf.amount), empty = exf.ppl.filter(p => exf.parts[p] == null || exf.parts[p] === ''), rest = A - exf.ppl.reduce((a, p) => a + exW(p), 0);
+      if (!A) toast('Сначала впиши общую сумму'); else if (!empty.length) toast('Пустых строк нет'); else if (rest <= 0) toast('Остатка нет'); else { const d = curDec(exf.cur), one = Math.floor(rest / empty.length * 10 ** d) / 10 ** d; empty.forEach((p, i) => { exf.parts[p] = inpN(i < empty.length - 1 ? one : rest - one * (empty.length - 1), d); }); exPaint(); } return true; }
+    if ((b = q('[data-exday]'))) { exSetDate(addDays(todayKey(), +b.dataset.exday)); return true; }
+    if ((b = q('[data-exrmf]'))) { e.preventDefault(); exSync(); exf.rm.push(b.dataset.exrmf); exPaint(); return true; }
+    if (q('[data-exsave]')) { exSave(); return true; }
+    if (q('[data-exdel]')) { const id = exf.id; confirmBox('Удалить эту запись?', ok => { if (ok) { del('expenses', id); closeSheet(); toast('Удалено. Вернуть можно в «🕘 Истории»'); } }); return true; }
+  }
+  if (q('[data-expadd]')) { openExpense(null); return true; }
+  if ((b = q('[data-exp]'))) { openExpense(b.dataset.exp); return true; }
+  if ((b = q('[data-mseg]'))) { moneySeg = b.dataset.mseg; ls.set('trip-mseg', moneySeg); haptic('soft'); renderMoney(); return true; }
+  if ((b = q('[data-paydebt]'))) { const t = mDeals[+b.dataset.paydebt]; if (t) openExpense(null, { kind: 'tr', payer: t.from, recv: t.to, amount: t.amount, cur: baseCur() }); return true; }
+  if ((b = q('[data-mperson]'))) { openPerson(b.dataset.mperson); return true; }
+  if (q('[data-mset]')) { e.preventDefault(); openMoneySet(); return true; }
+  if (q('[data-mcopy]')) { const t = moneyText(); navigator.clipboard?.writeText(t).then(() => toast('Итог скопирован. Вставь его в чат'), () => toast('Не удалось скопировать')); haptic(); return true; }
+  if (q('[data-mcsv]')) { moneyExport(); return true; }
+  return false;
+}
+document.addEventListener('input', e => { if (exf && e.target.closest?.('#expForm')) exInput(e); });
+document.addEventListener('change', e => { if (exf && e.target.closest?.('#expForm')) exChange(e); });
+
 /* --- места --- */
 function renderPlaces() {
   const all = list('places');
@@ -1859,7 +2378,7 @@ function lockScroll(on) {
 }
 function openSheet(html, o = {}) {
   const sh = $('#sheet'), inn = $('#sheetIn'), bg = $('#sheetBg');
-  sheetGuard = o.guard || null; sheetDirty = false;
+  sheetGuard = o.guard || null; sheetDirty = false; exf = null;
   inn.innerHTML = html; inn.scrollTop = 0; $('#sheetFoot').innerHTML = o.foot || '';
   sh.style.transform = ''; sh.classList.remove('dragging'); bg.style.opacity = ''; bg.style.display = 'block';
   lockScroll(true);
@@ -1868,7 +2387,7 @@ function openSheet(html, o = {}) {
 }
 function closeSheet() {
   const sh = $('#sheet'), bg = $('#sheetBg');
-  cityOpen = null; sheetGuard = null; sheetDirty = false; ed = null;
+  cityOpen = null; sheetGuard = null; sheetDirty = false; ed = null; exf = null;
   sh.style.transform = ''; sh.classList.remove('open', 'dragging'); bg.classList.remove('open'); bg.style.opacity = '';
   setTimeout(() => { if (!sh.classList.contains('open')) bg.style.display = 'none'; }, 280);
   lockScroll(false);
@@ -2106,6 +2625,7 @@ document.addEventListener('click', e => {
   if (T.closest('[data-invite]')) { closeSheet(); setTimeout(openInvite, 250); return; }
   if (T.closest('[data-home]')) { goTrip(''); return; }
   if (T.closest('[data-openme]')) { e.preventDefault(); closeSheet(); setTimeout(() => openMe(false), 250); return; }
+  if (moneyClick(e, T)) return;
   const a = T.closest('a.ext');
   if (a) { e.stopPropagation(); if (inTG) { e.preventDefault(); const u = a.href; /^https:\/\/t\.me\//.test(u) ? tg.openTelegramLink(u) : tg.openLink(u); } return; }
   if (T.closest('a[href^="tel:"]')) { e.stopPropagation(); return; }
@@ -2124,7 +2644,7 @@ document.addEventListener('click', e => {
   if (T.closest('[data-logmore]')) { logN += 60; openLog(true); return; }
   const lu = T.closest('[data-logundo]'); if (lu) { logUndo(lu.dataset.logundo); return; }
   const lo = T.closest('[data-logopen]'); if (lo) { const [sec, id] = lo.dataset.logopen.split('|');
-    if (sec === 'meta') return openMetaForm(); if (sec === 'stops') { cityOpen = id; return openCity(id); }
+    if (sec === 'meta') return openMetaForm(); if (sec === 'expenses') return openExpense(id); if (sec === 'stops') { cityOpen = id; return openCity(id); }
     if (sec === 'options') { const o = data.options?.[id]; if (o) { const [ps, pid] = o.parent.split(':'); return openForm(ps, pid); } }
     return openForm(sec, id); }
   const re = T.closest('[data-reded]'); if (re) { e.preventDefault(); openRouteEd({ focus: re.dataset.reded || undefined }); return; }
@@ -2179,6 +2699,8 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('submit', e => {
   const f = e.target;
+  if (f.id === 'expForm') { e.preventDefault(); document.activeElement?.blur?.(); return; }   // «Готово» на клавиатуре только прячет её
+  if (f.id === 'mSetForm') { e.preventDefault(); moneySetSave(f); return; }
   if (f.matches('[data-composer]')) {
     e.preventDefault(); const text = f.elements.text.value.trim(); if (!text) return;
     if (!me) { openMe(true); return; }
