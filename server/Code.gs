@@ -114,3 +114,56 @@ function selfTest() {
     return !!f && JSON.parse(f.user).id === 42 && verify(good.replace('%3A42', '%3A43'), token) === null && verify(good, token + 'x') === null;
   } catch (err) { return false; }
 }
+
+/* ---------------- оформление бота ----------------
+ * Эти функции из интернета недоступны. Их запускают вручную в редакторе Apps Script:
+ * выбрать функцию в списке над кодом и нажать «Выполнить». Результат виден в «Журнале выполнения».
+ */
+const SITE = 'https://nikitamojet-creator.github.io/trip-2026/';
+const BOT_ABOUT = 'Общий путеводитель для поездки: маршрут, билеты, жильё, расходы и заметки. Бесплатно.';
+const BOT_DESCRIPTION = [
+  'Общий путеводитель для поездки с друзьями или семьёй.',
+  '',
+  '🗺 Маршрут по дням и карта',
+  '🎫 Билеты, жильё и ваучеры под рукой',
+  '💰 Общие расходы: сразу видно, кто кому должен',
+  '📍 Места, заметки и список дел',
+  '',
+  'Создай поездку и отправь ссылку тем, кто едет с тобой. Править могут все, у кого есть ссылка. Бесплатно.',
+  '',
+  'Чтобы начать, открой приложение кнопкой «Открыть».',
+].join('\n');
+
+// Вызов Bot API. Текст сетевой ошибки не показываем: в нём адрес запроса с токеном.
+function tg(method, payload) {
+  try {
+    const r = UrlFetchApp.fetch('https://api.telegram.org/bot' + getToken() + '/' + method, { method: 'post', payload: payload || {}, muteHttpExceptions: true });
+    return JSON.parse(r.getContentText());
+  } catch (err) { return { ok: false, description: 'запрос не выполнен' }; }
+}
+
+// Что сейчас выставлено у бота.
+function botInfo() {
+  ['getMe', 'getMyName', 'getMyDescription', 'getMyShortDescription', 'getMyCommands', 'getChatMenuButton'].forEach(function (m) {
+    const j = tg(m); console.log(m + ': ' + JSON.stringify(j.ok ? j.result : j.description));
+  });
+  const w = tg('getWebhookInfo'), url = w.ok && w.result.url ? w.result.url : '';
+  console.log('webhook: ' + (url ? url.split('/')[2] + ', в очереди ' + w.result.pending_update_count : 'нет'));
+}
+
+// Описание, подпись в профиле и кнопка меню, которая открывает приложение.
+function setupBot() {
+  const show = function (name, j) { console.log(name + ': ' + (j.ok ? 'готово' : 'ошибка · ' + j.description)); };
+  show('описание', tg('setMyDescription', { description: BOT_DESCRIPTION }));
+  show('подпись в профиле', tg('setMyShortDescription', { short_description: BOT_ABOUT }));
+  show('кнопка меню', tg('setChatMenuButton', { menu_button: JSON.stringify({ type: 'web_app', text: 'Открыть', web_app: { url: SITE } }) }));
+}
+
+// Аватарка: картинка лежит на сайте (bot-avatar.jpg).
+function setupBotPhoto() {
+  let img;
+  try { img = UrlFetchApp.fetch(SITE + 'bot-avatar.jpg').getBlob().setName('avatar.jpg'); }
+  catch (err) { console.log('аватарка: не удалось скачать картинку с сайта'); return; }
+  const j = tg('setMyProfilePhoto', { photo: JSON.stringify({ type: 'static', photo: 'attach://file' }), file: img });
+  console.log('аватарка: ' + (j.ok ? 'готово' : 'ошибка · ' + j.description));
+}
