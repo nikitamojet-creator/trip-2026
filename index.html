@@ -326,7 +326,8 @@ details.adv>summary::-webkit-details-marker{display:none}
 .fv-bar:empty{display:none}
 .fv-btns{display:flex;gap:8px;max-width:520px;margin:0 auto}
 .fv-btns button{flex:1;border:0;border-radius:14px;padding:14px 10px;font-size:15.5px;font-weight:700;background:rgba(255,255,255,.14);color:#fff}
-.fv-btns button.pri{background:linear-gradient(135deg,var(--g2),var(--g3))}
+.fv-btns button.pri{flex:1.5;background:linear-gradient(135deg,var(--g2),var(--g3))}
+.fv-btns button[disabled]{opacity:.6}
 .fv-btns button:active{transform:scale(.985)}
 .fv-note{font-size:12.5px;color:rgba(255,255,255,.62);text-align:center;margin:8px auto 0;max-width:520px;line-height:1.4}
 .fv-note:empty{display:none}
@@ -2575,12 +2576,17 @@ function fvSub() { const c = fv, el = $('#fvS'); if (!c?.f || !el) return;
   el.textContent = [c.pdf ? 'PDF' : 'Фото', c.pages ? `${c.pages} ${plural(c.pages, 'страница', 'страницы', 'страниц')}` : '', fmtSize(c.blob.size), c.f.by ? 'добавлено: ' + c.f.by : ''].filter(Boolean).join(' · '); }
 function fvNote(html) { const el = $('#fvNote'); if (el) el.innerHTML = html; }
 const fvCanShare = () => { try { return !!(fv?.file && navigator.canShare?.({ files: [fv.file] })); } catch { return false; } };
+const fvCanSend = () => inTG && !!CFG.sendUrl && !!CFG.firebase && !!tg.initDataUnsafe?.user?.id;
 function fvBar() {
   const share = (isAndroid || isIOS) && fvCanShare(), viaWeb = inTG && !!CFG.firebase;
   let btns, note = '';
+  // В Telegram проще всего попросить бота прислать файл в чат (настраивается адресом sendUrl в config.js);
+  // рядом остаётся сохранение на устройство: «Поделиться» там, где оно есть, иначе скачивание через браузер.
+  if (fvCanSend()) { btns = `<button class="pri" data-fvsend>📩 Прислать в чат</button>${share ? '<button data-fvshare>📤 Сохранить</button>' : '<button data-fvdl>⬇️ Скачать</button>'}`;
+    note = 'Бот пришлёт файл тебе в Telegram' + (share ? '' : '. «Скачать» откроет браузер'); }
   // iPhone: «Скачать» в Safari уводит со страницы на сам PDF, поэтому там одна кнопка, системное «Поделиться»
   // (в нём есть «Сохранить в Файлы», печать и отправка в любой чат)
-  if (share && (isIOS || viaWeb)) { btns = `<button class="pri" data-fvshare>📤 Сохранить или отправить</button>`; if (viaWeb) note = `Не получилось? <button data-fvdl>Открыть в браузере</button>`; }
+  else if (share && (isIOS || viaWeb)) { btns = `<button class="pri" data-fvshare>📤 Сохранить или отправить</button>`; if (viaWeb) note = `Не получилось? <button data-fvdl>Открыть в браузере</button>`; }
   else if (viaWeb) { btns = `<button class="pri" data-fvdl>⬇️ Скачать</button>`; note = 'Откроется браузер, файл скачается в нём'; }
   else { btns = `<button class="pri" data-fvdl>⬇️ Скачать</button>${share ? '<button data-fvshare>📤 Поделиться</button>' : ''}`;
     if (inAppWeb) note = 'Если не скачивается, открой эту страницу в Chrome: меню ⋮ → «Открыть в браузере»'; }
@@ -2647,6 +2653,39 @@ function fvViaBrowser(c) {
     // Chrome на телефоне может не быть: тогда ничего не откроется, и следующее нажатие пойдёт обычной ссылкой
     if (chrome && fv === c && !hid && Date.now() - t0 < 3500) { c.plain = true; fvNote('Браузер не открылся? Нажми «Скачать» ещё раз'); } }, 2000);
 }
+// Бот присылает файл в личный чат. Сам файл берёт сервер (server/Code.gs) из базы, отсюда уходят только id и подпись Telegram.
+const SEND_ERR = {
+  write: 'Бот пока не может тебе написать. <button data-fvchat>Открой чат с ботом</button>, нажми «Запустить» и попробуй ещё раз',
+  auth: 'Telegram не подтвердил вход. Закрой приложение и открой его заново из бота',
+  not_found: 'Файл не найден. Возможно, его удалили',
+  too_big: 'Файл слишком большой для отправки. Его можно сохранить соседней кнопкой',
+  no_token: 'Отправка в чат ещё не настроена',
+};
+async function fvSend() {
+  const c = fv; if (!c?.f || c.sending) return;
+  const btn = $('#fvBar [data-fvsend]'), label = on => { if (btn?.isConnected) { btn.disabled = !!on; btn.textContent = on || '📩 Прислать в чат'; } };
+  const fail = html => { c.sending = false; if (fv !== c) return; label(); fvNote(html); };
+  c.sending = true; label('Отправляю…'); fvNote('');
+  // бот может написать первым, только если ему это разрешили: Telegram сам покажет вопрос, если разрешения ещё нет
+  if (!tg.initDataUnsafe.user.allows_write_to_pm && !fvSend.allowed && tg.isVersionAtLeast?.('6.9')) {
+    const ok = await new Promise(res => { try { tg.requestWriteAccess(res); } catch { res(true); } });
+    if (!ok) return fail('Без разрешения бот не сможет прислать файл. Нажми ещё раз и разреши');
+    fvSend.allowed = true;
+  }
+  let j = null;
+  try {
+    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 45000);
+    // тело строкой: тогда браузер шлёт простой запрос без предварительной проверки, которую Apps Script не умеет
+    const r = await fetch(CFG.sendUrl, { method: 'POST', body: JSON.stringify({ t: TRIP, f: c.fid, initData: tg.initData }), signal: ctl.signal });
+    clearTimeout(tm); j = await r.json();
+  } catch (err) { console.error(err); return fail('Не получилось связаться с ботом. Проверь интернет и попробуй ещё раз'); }
+  if (j?.error === 'write') fvSend.allowed = false; // в следующий раз спросим разрешение заново
+  if (!j?.ok) return fail(SEND_ERR[j?.error] || 'Не получилось отправить. Попробуй ещё раз или сохрани соседней кнопкой');
+  c.sending = false; try { tg.HapticFeedback?.notificationOccurred('success'); } catch {}
+  if (fv !== c) return toast('Файл отправлен в чат с ботом');
+  label(); if (btn?.isConnected) btn.textContent = '✅ Отправлено';
+  fvNote('Файл уже в чате с ботом. <button data-fvchat>Открыть чат</button>');
+}
 async function fvShare() {
   const c = fv; if (!c?.file) return;
   try { await navigator.share({ files: [c.file] }); }
@@ -2673,6 +2712,8 @@ function fvClick(e, T) {
   if (!fv || !T.closest('#fv')) return false;
   let z;
   if (T.closest('[data-fvclose]')) fvClose();
+  else if (T.closest('[data-fvsend]')) fvSend();
+  else if (T.closest('[data-fvchat]')) { try { tg.openTelegramLink('https://t.me/' + BOT); } catch (err) { console.error(err); } }
   else if (T.closest('[data-fvshare]')) fvShare();
   else if (T.closest('[data-fvdl]')) fvDownload();
   else if ((z = T.closest('[data-fvz]'))) fvZoom(fv.z * (z.dataset.fvz > 0 ? 1.5 : 1 / 1.5));
