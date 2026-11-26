@@ -19,6 +19,9 @@ function doPost(e) {
   let res;
   try { res = send(JSON.parse(e.postData.contents)); }
   catch (err) { res = { ok: false, error: 'bad_request' }; }
+  // В журнал («Выполнения» в Apps Script) пишем только итог: без имён, id и токена.
+  console.log((res.ok ? 'ok' : res.error) + (res.code ? ' ' + res.code : '') + (res.log ? ' · ' + res.log : ''));
+  delete res.log;
   return out(res);
 }
 
@@ -68,8 +71,9 @@ function send(req) {
     code = r.getResponseCode(); j = JSON.parse(r.getContentText());
   } catch (err) { return { ok: false, error: 'telegram' }; } // текст ошибки не отдаём: в нём адрес с токеном
   if (j && j.ok) return { ok: true };
-  if (code === 403) return { ok: false, error: 'write' };      // бот не может написать первым
-  return { ok: false, error: 'telegram', code: code };
+  const log = j && j.description ? String(j.description).slice(0, 120) : '';
+  if (code === 403) return { ok: false, error: 'write', log: log };      // бот не может написать первым
+  return { ok: false, error: 'telegram', code: code, log: log };
 }
 
 // Имя файла такое же, как при скачивании в приложении.
