@@ -2655,32 +2655,45 @@ function fvViaBrowser(c) {
 }
 // Бот присылает файл в личный чат. Сам файл берёт сервер (server/Code.gs) из базы, отсюда уходят только id и подпись Telegram.
 const SEND_ERR = {
-  write: 'Бот пока не может тебе написать. <button data-fvchat>Открой чат с ботом</button>, нажми «Запустить» и попробуй ещё раз',
   auth: 'Telegram не подтвердил вход. Закрой приложение и открой его заново из бота',
   not_found: 'Файл не найден. Возможно, его удалили',
   too_big: 'Файл слишком большой для отправки. Его можно сохранить соседней кнопкой',
   no_token: 'Отправка в чат ещё не настроена',
 };
+const SEND_START = 'Бот ещё не может тебе написать. <button data-fvchat>Открой чат с ботом</button>, нажми там «Запустить», потом вернись и нажми «Прислать в чат» ещё раз';
+async function fvPost(c) {
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 45000);
+  // тело строкой: тогда браузер шлёт простой запрос без предварительной проверки, которую Apps Script не умеет
+  try { return await (await fetch(CFG.sendUrl, { method: 'POST', body: JSON.stringify({ t: TRIP, f: c.fid, initData: tg.initData }), signal: ctl.signal })).json(); }
+  finally { clearTimeout(tm); }
+}
+// Разрешение боту писать первым. true / false, а null значит, что Telegram не ответил (старое приложение): ждём не дольше 25 секунд.
+function fvAskWrite() {
+  return new Promise(res => {
+    let done = false; const fin = v => { if (!done) { done = true; res(v); } };
+    if (!tg.isVersionAtLeast?.('6.9')) return fin(null);
+    try { tg.requestWriteAccess(ok => fin(!!ok)); } catch { return fin(null); }
+    setTimeout(() => fin(null), 25000);
+  });
+}
 async function fvSend() {
   const c = fv; if (!c?.f || c.sending) return;
   const btn = $('#fvBar [data-fvsend]'), label = on => { if (btn?.isConnected) { btn.disabled = !!on; btn.textContent = on || '📩 Прислать в чат'; } };
   const fail = html => { c.sending = false; if (fv !== c) return; label(); fvNote(html); };
   c.sending = true; label('Отправляю…'); fvNote('');
-  // бот может написать первым, только если ему это разрешили: Telegram сам покажет вопрос, если разрешения ещё нет
-  if (!tg.initDataUnsafe.user.allows_write_to_pm && !fvSend.allowed && tg.isVersionAtLeast?.('6.9')) {
-    const ok = await new Promise(res => { try { tg.requestWriteAccess(res); } catch { res(true); } });
-    if (!ok) return fail('Без разрешения бот не сможет прислать файл. Нажми ещё раз и разреши');
-    fvSend.allowed = true;
-  }
   let j = null;
   try {
-    const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 45000);
-    // тело строкой: тогда браузер шлёт простой запрос без предварительной проверки, которую Apps Script не умеет
-    const r = await fetch(CFG.sendUrl, { method: 'POST', body: JSON.stringify({ t: TRIP, f: c.fid, initData: tg.initData }), signal: ctl.signal });
-    clearTimeout(tm); j = await r.json();
+    j = await fvPost(c);
+    // Сначала пробуем отправить. Разрешение спрашиваем, только если бот и правда не может написать:
+    // тем, кто его уже запускал, лишний вопрос не нужен, а на старых приложениях он мог остаться без ответа.
+    if (j?.error === 'write') {
+      if (fv === c) { label('Нужно разрешение…'); fvNote('Telegram спросит, можно ли боту писать тебе. Разреши, и файл придёт'); }
+      const ok = await fvAskWrite();
+      if (ok === false) return fail('Без разрешения бот не сможет прислать файл. Нажми «Прислать в чат» ещё раз и разреши');
+      if (ok) { if (fv === c) { label('Отправляю…'); fvNote(''); } j = await fvPost(c); }
+    }
   } catch (err) { console.error(err); return fail('Не получилось связаться с ботом. Проверь интернет и попробуй ещё раз'); }
-  if (j?.error === 'write') fvSend.allowed = false; // в следующий раз спросим разрешение заново
-  if (!j?.ok) return fail(SEND_ERR[j?.error] || 'Не получилось отправить. Попробуй ещё раз или сохрани соседней кнопкой');
+  if (!j?.ok) return fail(j?.error === 'write' ? SEND_START : SEND_ERR[j?.error] || 'Не получилось отправить. Попробуй ещё раз или сохрани соседней кнопкой');
   c.sending = false; try { tg.HapticFeedback?.notificationOccurred('success'); } catch {}
   if (fv !== c) return toast('Файл отправлен в чат с ботом');
   label(); if (btn?.isConnected) btn.textContent = '✅ Отправлено';
