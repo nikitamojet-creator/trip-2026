@@ -16,6 +16,7 @@ const TRIP_RE = /^[A-Za-z0-9_-]{16,64}$/;
 const FILE_RE = /^[a-z0-9]{6,24}$/i;
 
 function doPost(e) {
+  if (e && e.parameter && e.parameter.hook) return hookReply(e); // сообщение боту от Telegram, см. «ответы бота» ниже
   let res;
   try { res = send(JSON.parse(e.postData.contents)); }
   catch (err) { res = { ok: false, error: 'bad_request' }; }
@@ -131,7 +132,7 @@ const BOT_DESCRIPTION = [
   '',
   'Создай поездку и отправь ссылку тем, кто едет с тобой. Править могут все, у кого есть ссылка. Бесплатно.',
   '',
-  'Чтобы начать, нажми «Запустить», а затем кнопку «Путеводитель» внизу.',
+  'Чтобы начать, нажми «Запустить».',
 ].join('\n');
 
 // Вызов Bot API. Текст сетевой ошибки не показываем: в нём адрес запроса с токеном.
@@ -148,12 +149,14 @@ function botInfo() {
     const j = tg(m); console.log(m + ': ' + JSON.stringify(j.ok ? j.result : j.description));
   });
   const w = tg('getWebhookInfo'), url = w.ok && w.result.url ? w.result.url : '';
-  console.log('webhook: ' + (url ? url.split('/')[2] + ', в очереди ' + w.result.pending_update_count : 'нет'));
+  // сам адрес не показываем: в нём секрет
+  console.log('приём сообщений: ' + (url ? url.split('/')[2] + ', в очереди ' + w.result.pending_update_count +
+    (w.result.last_error_message ? ', последняя ошибка: ' + w.result.last_error_message + ' (' + new Date(w.result.last_error_date * 1000).toISOString() + ')' : ', ошибок нет') : 'выключен'));
 }
 
 // Описание и подпись в профиле. Кнопку меню «Путеводитель» не трогаем: она уже открывает приложение.
+function show(name, j) { console.log(name + ': ' + (j.ok ? 'готово' : 'ошибка · ' + j.description)); }
 function setupBot() {
-  const show = function (name, j) { console.log(name + ': ' + (j.ok ? 'готово' : 'ошибка · ' + j.description)); };
   show('описание', tg('setMyDescription', { description: BOT_DESCRIPTION }));
   show('подпись в профиле', tg('setMyShortDescription', { short_description: BOT_ABOUT }));
 }
@@ -165,4 +168,57 @@ function setupBotPhoto() {
   catch (err) { console.log('аватарка: не удалось скачать картинку с сайта'); return; }
   const j = tg('setMyProfilePhoto', { photo: JSON.stringify({ type: 'static', photo: 'attach://file' }), file: img });
   console.log('аватарка: ' + (j.ok ? 'готово' : 'ошибка · ' + j.description));
+}
+
+/* ---------------- ответы бота ----------------
+ * Бот отвечает на «Запустить» и на любое личное сообщение: присылает приветствие с кнопкой, которая открывает приложение.
+ * Telegram шлёт сообщения на адрес веб-приложения с параметром hook=<секрет>. Секрет создаёт setupHook и хранит
+ * в свойствах скрипта (HOOK_SECRET), поэтому подделать сообщение от Telegram нельзя.
+ */
+const EXEC_URL = 'https://script.google.com/macros/s/AKfycbwn8iqhT26OHLXsmSVSLkM6H6akVfBY4sGEKRRZqG2ihJRZHwIwlbdYs2DuX2hO4eufpA/exec';
+const HELLO = [
+  'Привет! Я открываю путеводитель для поездки: маршрут по дням, билеты и жильё, общие расходы, места и заметки.',
+  '',
+  'Создай поездку и отправь ссылку тем, кто едет с тобой. Если тебе уже прислали приглашение, открой его, и поездка появится в списке.',
+  '',
+  'Сюда же я присылаю ваучеры и билеты, когда в приложении нажимаешь «Прислать в чат».',
+].join('\n');
+const HELLO_TRIP = 'Привет! Тебя зовут в поездку. Нажми кнопку ниже, и она откроется.';
+const HELLO_ANY = 'Отвечать на сообщения я не умею, зато открываю путеводитель. Нажми кнопку ниже.';
+
+function hookReply(e) {
+  // Telegram ждёт ответ 200 без переадресации: страницу HtmlService Google отдаёт сразу, а JSON только через переадресацию.
+  const done = HtmlService.createHtmlOutput('ok');
+  try {
+    const secret = PropertiesService.getScriptProperties().getProperty('HOOK_SECRET');
+    if (!secret || e.parameter.hook !== secret) return done;
+    const up = JSON.parse(e.postData.contents), m = up.message;
+    if (!m || !m.chat || m.chat.type !== 'private') return done;
+    // Telegram повторяет сообщение, если не дождался ответа: на каждое отвечаем один раз.
+    const cache = CacheService.getScriptCache(), key = 'u' + up.update_id;
+    if (cache.get(key)) return done;
+    cache.put(key, '1', 3600);
+    const start = /^\/start(?:@\w+)?(?:\s+(\S+))?/.exec(String(m.text || ''));
+    const trip = start && start[1] && TRIP_RE.test(start[1]) ? start[1] : '';
+    const text = trip ? HELLO_TRIP : start ? HELLO : HELLO_ANY;
+    const button = { text: trip ? '🧭 Открыть поездку' : '🧭 Открыть путеводитель', web_app: { url: trip ? SITE + '?t=' + trip : SITE } };
+    tg('sendMessage', { chat_id: String(m.chat.id), text: text, reply_markup: JSON.stringify({ inline_keyboard: [[button]] }) });
+  } catch (err) { /* что бы ни случилось, Telegram должен получить обычный ответ, иначе он будет повторять сообщение */ }
+  return done;
+}
+
+// Включить ответы бота. Запускается вручную в редакторе, как и функции оформления.
+function setupHook() {
+  const props = PropertiesService.getScriptProperties();
+  let secret = props.getProperty('HOOK_SECRET');
+  if (!secret) { secret = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, ''); props.setProperty('HOOK_SECRET', secret); }
+  // старые неотвеченные «Запустить» сбрасываем, чтобы бот не ответил на них разом
+  show('приём сообщений', tg('setWebhook', { url: EXEC_URL + '?hook=' + secret, allowed_updates: JSON.stringify(['message']), drop_pending_updates: 'true' }));
+  show('команда /start', tg('setMyCommands', { commands: JSON.stringify([{ command: 'start', description: 'Открыть путеводитель' }]) }));
+}
+
+// Выключить ответы бота.
+function removeHook() {
+  show('приём сообщений выключен', tg('deleteWebhook', { drop_pending_updates: 'true' }));
+  show('команды убраны', tg('deleteMyCommands', {}));
 }
