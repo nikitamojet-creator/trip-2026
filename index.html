@@ -822,7 +822,8 @@ async function prefetchFiles() {
     for (const id of ids) { if (!online) break; if (await fileCacheGet(id)) continue;
       const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`)).catch(() => null))?.val(); if (f) await fileCachePut(id, f); }
     const hasPdf = [...list('transport'), ...list('stays'), ...list('expenses')].some(x => Object.values(x.files || {}).some(m => m.type?.includes('pdf')));
-    if (hasPdf && online && ls.get('trip-pdfjs') !== PDFJS) { const r = await Promise.all(PDFJS_FILES.map(u => fetch(u).then(x => x.ok, () => false))); if (r.every(Boolean)) ls.set('trip-pdfjs', PDFJS); }
+    // библиотеку для PDF запрашиваем тем же способом (no-cors), каким её потом грузит страница
+    if (hasPdf && online && ls.get('trip-pdfjs') !== PDFJS) { const r = await Promise.all(PDFJS_FILES.map(u => fetch(u, { mode: 'no-cors' }).then(() => true, () => false))); if (r.every(Boolean)) ls.set('trip-pdfjs', PDFJS); }
   } finally { prefetchFiles._busy = 0; }
 }
 async function getFile(id) {
