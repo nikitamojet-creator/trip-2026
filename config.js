@@ -9,4 +9,8 @@ window.TRIP_CONFIG = {
     projectId: "trip-guide-ffb87",
     databaseURL: "https://trip-guide-ffb87-default-rtdb.europe-west1.firebasedatabase.app",
   },
+
+  // Адрес веб-приложения Google Apps Script (server/Code.gs): через него бот присылает файл в чат.
+  // Без адреса кнопки «Прислать в чат» нет. Токен бота здесь не нужен, он лежит в свойствах скрипта.
+  sendUrl: "https://script.google.com/macros/s/AKfycbwn8iqhT26OHLXsmSVSLkM6H6akVfBY4sGEKRRZqG2ihJRZHwIwlbdYs2DuX2hO4eufpA/exec",
 };
