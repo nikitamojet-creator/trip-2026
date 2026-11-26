@@ -306,7 +306,31 @@ details.adv>summary::-webkit-details-marker{display:none}
 .flist{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
 .flist label{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:12px;padding:8px 10px;color:var(--text);font-size:14px}
 .flist input{width:auto}
-.fview img{width:100%;border-radius:14px;display:block}
+/* просмотр файлов: поверх всего, одинаково в Telegram и в браузере */
+.fv{position:fixed;inset:0;z-index:70;display:none;flex-direction:column;background:#15131d;color:#fff}
+.fv.open{display:flex}
+.fv-top{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 8px 8px 16px}
+.fv-top .grow{min-width:0}
+.fv-t{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-s{font-size:12px;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-x{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.13);color:#fff;font-size:18px;line-height:1;padding:0}
+.fv-mid{flex:1;min-height:0;position:relative;display:flex}
+.fv-body{flex:1;min-width:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-x pan-y}
+.fv-pages{width:calc(100% * var(--z,1));max-width:calc(900px * var(--z,1));margin:0 auto;padding:4px 8px;box-sizing:border-box}
+.fv-pages img{display:block;width:100%;background:#fff;border-radius:6px;margin:0 0 8px;-webkit-user-drag:none}
+.fv-pages iframe{display:block;width:100%;height:70vh;border:0;border-radius:6px;background:#fff}
+.fv-msg{padding:56px 24px;text-align:center;color:rgba(255,255,255,.78);font-size:15px;line-height:1.45}
+.fv-zoom{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
+.fv-zoom button{width:40px;height:40px;border:0;border-radius:50%;background:rgba(30,27,41,.82);color:#fff;font-size:20px;line-height:1;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.fv-bar{flex:none;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#1e1b29;border-top:1px solid rgba(255,255,255,.08)}
+.fv-bar:empty{display:none}
+.fv-btns{display:flex;gap:8px;max-width:520px;margin:0 auto}
+.fv-btns button{flex:1;border:0;border-radius:14px;padding:14px 10px;font-size:15.5px;font-weight:700;background:rgba(255,255,255,.14);color:#fff}
+.fv-btns button.pri{background:linear-gradient(135deg,var(--g2),var(--g3))}
+.fv-btns button:active{transform:scale(.985)}
+.fv-note{font-size:12.5px;color:rgba(255,255,255,.62);text-align:center;margin:8px auto 0;max-width:520px;line-height:1.4}
+.fv-note:empty{display:none}
+.fv-note button{border:0;background:none;padding:0;font:inherit;color:#b9b4ff;font-weight:600;text-decoration:underline}
 .join{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
 .join:first-child{border-top:0}
 .prow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
@@ -505,6 +529,7 @@ nav.six button{font-size:10px}nav.six button b{font-size:19px}
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet"><div class="grabz" id="sheetGrab"><div class="grab"></div></div><div class="sheet-in" id="sheetIn"></div><div id="sheetFoot"></div></div>
 <div class="toast" id="toast"></div>
+<div class="fv" id="fv"></div>
 
 <script type="module">
 const CFG = window.TRIP_CONFIG || {};
@@ -551,6 +576,7 @@ function pickTrip() {
   const last = ls.get('trip-last'); return last && TRIP_RE.test(last) ? last : '';
 }
 const TRIP = pickTrip();
+const FILE_Q = /^[a-z0-9]{6,24}$/i.test(qs.get('f') || '') ? qs.get('f') : ''; // ссылка сразу на файл
 const tripUrl = id => location.origin + location.pathname + '?t=' + id;
 const tgUrl = id => BOT ? `https://t.me/${BOT}?startapp=${id}` : tripUrl(id);
 const knownTrips = () => { try { return JSON.parse(ls.get('trips-known')) || []; } catch { return []; } };
@@ -795,11 +821,17 @@ async function prefetchFiles() {
     const ids = [...list('transport'), ...list('stays'), ...list('expenses')].flatMap(x => Object.keys(x.files || {}));
     for (const id of ids) { if (!online) break; if (await fileCacheGet(id)) continue;
       const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`)).catch(() => null))?.val(); if (f) await fileCachePut(id, f); }
+    const hasPdf = [...list('transport'), ...list('stays'), ...list('expenses')].some(x => Object.values(x.files || {}).some(m => m.type?.includes('pdf')));
+    if (hasPdf && online && ls.get('trip-pdfjs') !== PDFJS) { const r = await Promise.all(PDFJS_FILES.map(u => fetch(u).then(x => x.ok, () => false))); if (r.every(Boolean)) ls.set('trip-pdfjs', PDFJS); }
   } finally { prefetchFiles._busy = 0; }
 }
 async function getFile(id) {
-  if (mode === 'fb') { const c = await fileCacheGet(id); if (c) return c; if (!online) return null;
-    const f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`))).val(); if (f) fileCachePut(id, f); return f; }
+  if (CFG.firebase && TRIP) { const c = await fileCacheGet(id); if (c) return c;
+    let f = null;
+    if (mode === 'fb' && online) f = (await fb.get(fb.ref(fb.db, `${fb.root}/files/${id}`)).catch(() => null))?.val();
+    // база ещё не подключилась (страницу только что открыли по ссылке на файл): берём файл обычным запросом
+    if (!f && navigator.onLine !== false) f = await fetch(`${CFG.firebase.databaseURL}/trips/${TRIP}/files/${id}.json`).then(r => r.ok ? r.json() : null).catch(() => null);
+    if (f) fileCachePut(id, f); return f; }
   return data.files?.[id];
 }
 function removeFile(id) { if (mode === 'fb') { fbWrite(`files/${id}`, null); caches.open(FCACHE).then(c => c.delete('__f/' + id)).catch(() => {}); } else delete data.files?.[id]; }
@@ -815,6 +847,8 @@ async function initStore() {
   if (!TRIP) { await syncCloudTrips(); return renderHome(); }
   const cached = loadCache();
   if (cached) data = cached;
+  // ссылка сразу на файл: показываем его, не дожидаясь подключения базы
+  if (FILE_Q) { history.replaceState(null, '', location.pathname + '?t=' + TRIP); openFile(FILE_Q, { auto: qs.has('dl') }); }
   if (CFG.firebase) {
     try {
       const { db, dbm } = await loadFb();
@@ -1794,7 +1828,7 @@ function stayCard(s) {
     ${s.address ? `<div class="muted" style="margin-top:6px">📍 ${esc(s.address)}</div>` : ''}
     ${s.price ? `<div class="muted">💰 ${esc(s.price)}</div>` : ''}
     ${s.notes ? `<div class="pre muted" style="margin-top:4px">${linkify(s.notes)}</div>` : ''}
-    <div class="btns">${s.who?.length ? avs(s.who) : ''}${extA(mapsUrl(s), '🗺 Карта')}${extA(s.link, '🔗 Бронь')}${copyChip(s.confirmation, '№')}${filesChips(s)}${s.phone ? `<a class="chip link ext" href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">📞</a>` : ''}</div>
+    <div class="btns">${s.who?.length ? avs(s.who) : ''}${extA(mapsUrl(s), '🗺 Карта')}${extA(s.link, '🔗 Бронь')}${copyChip(s.confirmation, '№')}${filesChips(s, 'Ваучер')}${s.phone ? `<a class="chip link ext" href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">📞</a>` : ''}</div>
     ${optionsHtml('stays', s)}
   </div>`;
 }
@@ -2400,7 +2434,7 @@ function dismissSheet() {
   if (sheetDirty) return confirmBox('Закрыть без сохранения?', ok => ok && closeSheet());
   closeSheet();
 }
-if (inTG) tg.BackButton.onClick(dismissSheet);
+if (inTG) tg.BackButton.onClick(() => fv ? fvClose() : dismissSheet());
 $('#sheetBg').onclick = dismissSheet;
 $('#sheetIn').addEventListener('input', e => { if (!sheetGuard && e.target.closest('form')) sheetDirty = true; });
 (() => {   // потянуть шторку вниз, чтобы закрыть
@@ -2511,17 +2545,155 @@ function openForm(sec, id, preset = {}) {
     put(sec, id || uid(), out); haptic('medium'); closeSheet(); toast('Сохранено');
   };
 }
-async function openFile(fid) {
-  openSheet(`<div class="empty">Загружаю…</div>`);
+/* --- просмотр файлов (ваучеры, билеты, чеки) ---
+   В мини-приложении Telegram встроенный просмотр PDF и обычное скачивание не работают: на Android скачивания
+   выключены совсем, на iPhone запрещено меню по долгому нажатию. Поэтому PDF рисуем сами (pdf.js),
+   а сохранить даём через системное «Поделиться» или через браузер, куда уходит ссылка сразу на файл. */
+const PDFJS = 'https://unpkg.com/pdfjs-dist@3.11.174/';
+const PDFJS_FILES = [PDFJS + 'legacy/build/pdf.min.js', PDFJS + 'legacy/build/pdf.worker.min.js'];
+const UA = navigator.userAgent, isAndroid = /Android/i.test(UA);
+const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const inAppWeb = !inTG && isAndroid && /; wv\)/.test(UA); // встроенный браузер какого-то приложения: скачивания там обычно нет
+let fv = null, pdfLib = null;
+function loadPdfJs() {
+  return pdfLib ||= new Promise((ok, no) => {
+    const sc = document.createElement('script'); sc.src = PDFJS_FILES[0];
+    sc.onload = () => { const l = window.pdfjsLib; if (!l) { pdfLib = null; return no(new Error('pdfjs')); } l.GlobalWorkerOptions.workerSrc = PDFJS_FILES[1]; ok(l); };
+    sc.onerror = () => { sc.remove(); pdfLib = null; no(new Error('network')); };
+    document.head.append(sc);
+  });
+}
+function dataBytes(d) { const bin = atob(d.slice(d.indexOf(',') + 1)), u = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k); return u; }
+function fileNameOf(f) {
+  const pdf = !!f.type?.includes('pdf');
+  const base = String(f.name || '').replace(/\.[a-z0-9]{2,5}$/i, '').replace(/[\\/:*?"<>|\x00-\x1f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+  return (base || (pdf ? 'document' : 'photo')) + (pdf ? '.pdf' : '.jpg');
+}
+const fmtSize = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' МБ' : Math.max(1, Math.round(n / 1e3)) + ' КБ';
+function fvSub() { const c = fv, el = $('#fvS'); if (!c?.f || !el) return;
+  el.textContent = [c.pdf ? 'PDF' : 'Фото', c.pages ? `${c.pages} ${plural(c.pages, 'страница', 'страницы', 'страниц')}` : '', fmtSize(c.blob.size), c.f.by ? 'добавлено: ' + c.f.by : ''].filter(Boolean).join(' · '); }
+function fvNote(html) { const el = $('#fvNote'); if (el) el.innerHTML = html; }
+const fvCanShare = () => { try { return !!(fv?.file && navigator.canShare?.({ files: [fv.file] })); } catch { return false; } };
+function fvBar() {
+  const share = (isAndroid || isIOS) && fvCanShare(), viaWeb = inTG && !!CFG.firebase;
+  let btns, note = '';
+  // iPhone: «Скачать» в Safari уводит со страницы на сам PDF, поэтому там одна кнопка, системное «Поделиться»
+  // (в нём есть «Сохранить в Файлы», печать и отправка в любой чат)
+  if (share && (isIOS || viaWeb)) { btns = `<button class="pri" data-fvshare>📤 Сохранить или отправить</button>`; if (viaWeb) note = `Не получилось? <button data-fvdl>Открыть в браузере</button>`; }
+  else if (viaWeb) { btns = `<button class="pri" data-fvdl>⬇️ Скачать</button>`; note = 'Откроется браузер, файл скачается в нём'; }
+  else { btns = `<button class="pri" data-fvdl>⬇️ Скачать</button>${share ? '<button data-fvshare>📤 Поделиться</button>' : ''}`;
+    if (inAppWeb) note = 'Если не скачивается, открой эту страницу в Chrome: меню ⋮ → «Открыть в браузере»'; }
+  $('#fvBar').innerHTML = `<div class="fv-btns">${btns}</div><div class="fv-note" id="fvNote">${note}</div>`;
+}
+async function openFile(fid, o = {}) {
+  fvClose(true);
+  const cur = fv = { fid, z: 1, urls: [] }, el = $('#fv');
+  el.innerHTML = `<div class="fv-top"><div class="grow"><div class="fv-t" id="fvT">Файл</div><div class="fv-s" id="fvS">Загружаю…</div></div><button class="fv-x" data-fvclose aria-label="Закрыть">✕</button></div>
+    <div class="fv-mid"><div class="fv-body" id="fvBody"><div class="fv-pages" id="fvPages"><div class="fv-msg">Загружаю…</div></div></div>
+      <div class="fv-zoom"><button data-fvz="1" aria-label="Крупнее">＋</button><button data-fvz="-1" aria-label="Мельче">−</button></div></div>
+    <div class="fv-bar" id="fvBar"></div>`;
+  el.classList.add('open'); if (inTG) tg.BackButton.show();
   const f = await getFile(fid).catch(() => null);
-  if (!f) { openSheet(`<div class="empty">${online || mode !== 'fb' ? 'Файл не найден' : '📴 Этот файл ещё не сохранён на телефоне. Откроется, когда появится сеть'}</div>`); return; }
-  if (f.type?.includes('pdf')) {
-    const blob = await (await fetch(f.data)).blob(), url = URL.createObjectURL(blob);
-    openSheet(`<h2>📎 PDF${f.by ? ' · ' + esc(f.by) : ''}</h2><iframe src="${url}" style="width:100%;height:65vh;border:0;border-radius:14px;background:#fff"></iframe>
-      <div class="actions"><a class="btn pri" href="${url}" download="${esc(f.name || 'ticket.pdf')}" style="text-align:center">Скачать PDF</a></div>`);
-  } else {
-    openSheet(`<h2>📎 Билет${f.by ? ' · ' + esc(f.by) : ''}</h2><div class="fview"><img src="${f.data}" alt=""></div><div class="hint-s" style="text-align:center">Долгое нажатие на картинку: сохранить или поделиться</div>`);
+  if (fv !== cur) return;
+  if (!f?.data) { $('#fvS').textContent = '';
+    $('#fvPages').innerHTML = `<div class="fv-msg">${navigator.onLine === false || (mode === 'fb' && !online) ? '📴 Этот файл ещё не сохранён на устройстве.<br>Откроется, когда появится сеть.' : 'Файл не найден. Возможно, его удалили.'}</div>`; return; }
+  const pdf = !!f.type?.includes('pdf'), bytes = dataBytes(f.data);
+  cur.f = f; cur.pdf = pdf; cur.name = fileNameOf(f);
+  cur.blob = new Blob([bytes], { type: pdf ? 'application/pdf' : 'image/jpeg' });
+  cur.url = URL.createObjectURL(cur.blob);
+  try { cur.file = new File([cur.blob], cur.name, { type: cur.blob.type }); } catch {}
+  $('#fvT').textContent = cur.name; fvSub(); fvBar();
+  // страницу открыли по ссылке «скачать»: пробуем начать скачивание сами, кнопка остаётся на случай запрета
+  // (на iPhone сами не начинаем: там сохраняют кнопкой «Сохранить или отправить», ей нужно нажатие)
+  if (o.auto && !inTG && !(isIOS && fvCanShare())) setTimeout(() => { if (fv === cur) { fvSave(cur); fvNote('Если скачивание не началось, нажми «Скачать»'); } }, 400);
+  if (!pdf) { $('#fvPages').innerHTML = `<img src="${cur.url}" alt="">`; return; }
+  try { await fvPdf(cur, bytes); }
+  catch (err) { console.error(err); if (fv !== cur) return;
+    // не вышло нарисовать самим: где есть встроенный просмотр PDF, показываем им
+    $('#fvPages').innerHTML = isAndroid ? `<div class="fv-msg">Не получилось показать PDF здесь.<br>Его можно сохранить кнопкой ниже.</div>` : `<iframe src="${cur.url}" title="PDF"></iframe>`; }
+}
+async function fvPdf(cur, bytes) {
+  const lib = await loadPdfJs(); if (fv !== cur) return;
+  const doc = await lib.getDocument({ data: bytes.slice(), cMapUrl: PDFJS + 'cmaps/', cMapPacked: true, standardFontDataUrl: PDFJS + 'standard_fonts/' }).promise;
+  if (fv !== cur) { doc.destroy(); return; }
+  cur.doc = doc; cur.pages = doc.numPages; fvSub();
+  const box = $('#fvPages'), cssW = Math.min(box.clientWidth || 360, 900);
+  const W = Math.min(2000, Math.round(cssW * Math.min(window.devicePixelRatio || 1, 3) * (doc.numPages > 12 ? 1 : 1.6)));
+  for (let n = 1; n <= doc.numPages; n++) {
+    const page = await doc.getPage(n), vp = page.getViewport({ scale: W / page.getViewport({ scale: 1 }).width });
+    const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    const b = await new Promise(ok => cv.toBlob(ok, 'image/jpeg', 0.92)); cv.width = cv.height = 0; page.cleanup();
+    if (fv !== cur) return;
+    const img = new Image(); img.alt = 'Страница ' + n; img.src = URL.createObjectURL(b); cur.urls.push(img.src);
+    if (n === 1) box.innerHTML = ''; box.append(img);
   }
+}
+function fvSave(c) { const l = document.createElement('a'); l.href = c.url; l.download = c.name; l.rel = 'noopener'; document.body.append(l); l.click(); l.remove(); }
+function fvDownload() {
+  const c = fv; if (!c?.blob) return;
+  if (inTG && CFG.firebase) return fvViaBrowser(c);
+  fvSave(c); toast('Скачиваю: ' + c.name);
+}
+// Из Telegram: открываем сайт в настоящем браузере сразу на этом файле, там он скачивается.
+// На Android без try_browser ссылка попадает во встроенный браузер Telegram, где скачивание выключено.
+function fvViaBrowser(c) {
+  const u = `${tripUrl(TRIP)}&f=${c.fid}&dl=1`, chrome = isAndroid && !c.plain, t0 = Date.now();
+  let hid = false; const onVis = () => { if (document.visibilityState === 'hidden') hid = true; };
+  document.addEventListener('visibilitychange', onVis);
+  try { tg.openLink(u, chrome ? { try_browser: 'chrome' } : {}); } catch (err) { console.error(err); window.open(u, '_blank'); }
+  setTimeout(() => { document.removeEventListener('visibilitychange', onVis);
+    // Chrome на телефоне может не быть: тогда ничего не откроется, и следующее нажатие пойдёт обычной ссылкой
+    if (chrome && fv === c && !hid && Date.now() - t0 < 3500) { c.plain = true; fvNote('Браузер не открылся? Нажми «Скачать» ещё раз'); } }, 2000);
+}
+async function fvShare() {
+  const c = fv; if (!c?.file) return;
+  try { await navigator.share({ files: [c.file] }); }
+  catch (err) { if (err?.name === 'AbortError') return; console.error(err);
+    if (inTG && CFG.firebase) fvNote('Не получилось. <button data-fvdl>Открыть в браузере</button>');
+    else if ($('#fvBar [data-fvdl]')) fvNote('Не получилось поделиться. Попробуй «Скачать»');
+    else { fvSave(c); fvNote(''); } }
+}
+function fvZoom(z, cx, cy) {
+  const b = $('#fvBody'), p = $('#fvPages'); if (!fv || !b) return;
+  z = Math.max(1, Math.min(5, z)); const k = z / fv.z; if (k === 1) return;
+  const r = b.getBoundingClientRect(); cx ??= r.width / 2; cy ??= r.height / 2;
+  const x = (b.scrollLeft + cx) * k - cx, y = (b.scrollTop + cy) * k - cy;
+  fv.z = z; p.style.setProperty('--z', z); b.scrollLeft = x; b.scrollTop = y;
+}
+function fvClose(keepBack) {
+  const c = fv; if (!c) return; fv = null;
+  try { c.doc?.destroy(); } catch {}
+  setTimeout(() => [c.url, ...c.urls].forEach(u => u && URL.revokeObjectURL(u)), 60000); // скачивание могло ещё не закончиться
+  const el = $('#fv'); el.classList.remove('open'); el.innerHTML = '';
+  if (inTG && !keepBack && !$('#sheet').classList.contains('open')) tg.BackButton.hide();
+}
+function fvClick(e, T) {
+  if (!fv || !T.closest('#fv')) return false;
+  let z;
+  if (T.closest('[data-fvclose]')) fvClose();
+  else if (T.closest('[data-fvshare]')) fvShare();
+  else if (T.closest('[data-fvdl]')) fvDownload();
+  else if ((z = T.closest('[data-fvz]'))) fvZoom(fv.z * (z.dataset.fvz > 0 ? 1.5 : 1 / 1.5));
+  else if (T.closest('#fvBody')) { // двойное нажатие: приблизить и вернуть
+    const now = Date.now(), l = fvClick.last;
+    if (l && now - l.t < 320 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 30) { const r = $('#fvBody').getBoundingClientRect(); fvZoom(fv.z > 1.05 ? 1 : 2.5, e.clientX - r.left, e.clientY - r.top); fvClick.last = null; }
+    else fvClick.last = { t: now, x: e.clientX, y: e.clientY };
+  }
+  return true;
+}
+{ // щипок двумя пальцами, Ctrl + колесо мыши, Esc
+  const el = $('#fv'); let pinch = null;
+  const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  el.addEventListener('touchstart', e => { if (fv && e.touches.length === 2 && e.target.closest('#fvBody')) pinch = { d: dist(e.touches) || 1, z: fv.z }; }, { passive: true });
+  el.addEventListener('touchmove', e => { if (!pinch || !fv || e.touches.length !== 2) return; e.preventDefault();
+    const r = $('#fvBody').getBoundingClientRect(), t = e.touches;
+    fvZoom(pinch.z * dist(t) / pinch.d, (t[0].clientX + t[1].clientX) / 2 - r.left, (t[0].clientY + t[1].clientY) / 2 - r.top); }, { passive: false });
+  el.addEventListener('touchend', e => { if (e.touches.length < 2) pinch = null; }, { passive: true });
+  el.addEventListener('touchcancel', () => { pinch = null; }, { passive: true });
+  el.addEventListener('wheel', e => { if (!fv || !(e.ctrlKey || e.metaKey) || !e.target.closest('#fvBody')) return; e.preventDefault();
+    const r = $('#fvBody').getBoundingClientRect(); fvZoom(fv.z * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && fv) { e.stopPropagation(); fvClose(); } }, true);
 }
 function openMyTicket(id, justJoined) {
   const t = data.transport?.[id]; if (!t) return;
@@ -2547,7 +2719,7 @@ function openMyTicket(id, justJoined) {
 }
 const myPnr = x => (me && x.pnrs?.[me]) || x.confirmation;
 const myChip = x => me && x.who?.includes(me) ? `<button class="chip" data-myticket="${x.id}">${x.pnrs?.[me] || Object.values(x.files || {}).some(f => f.by === me) ? '✎ мой билет' : '＋ мой PNR / скрин'}</button>` : '';
-const filesChips = it => Object.entries(it.files || {}).map(([fid, m]) => `<button class="chip link" data-file="${fid}">📎 ${m.type?.includes('pdf') ? 'PDF' : 'Скрин'}${m.by ? ' · ' + esc(m.by) : ''}</button>`).join('');
+const filesChips = (it, pdfName = 'PDF') => { const fl = Object.entries(it.files || {}); return fl.map(([fid, m], i) => `<button class="chip link" data-file="${fid}">📎 ${m.type?.includes('pdf') ? pdfName : 'Скрин'}${fl.length > 1 ? ' ' + (i + 1) : ''}${m.by ? ' · ' + esc(m.by) : ''}</button>`).join(''); };
 const joinChip = t => me && !isMine(t) ? `<button class="chip" data-join="${t.id}">🙋 Я тоже на этом рейсе</button>` : '';
 function likeButtons() {
   const ppl = people().filter(p => p !== me).map(p => [p, list('transport').filter(t => t.who?.includes(p) && !isMine(t)).length]).filter(([, n]) => n);
@@ -2619,6 +2791,7 @@ function addMenu() {
 function go(t) { lockY = 0; tab = t; ls.set('trip-tab', t); window.scrollTo(0, 0); haptic('soft'); render(); }
 document.addEventListener('click', e => {
   const T = e.target;
+  if (fvClick(e, T)) return;
   const fg = T.closest('[data-forget]'); if (fg) { e.stopPropagation(); forgetTrip(fg.dataset.forget); renderHome(); return; }
   const op = T.closest('[data-open]'); if (op) { goTrip(op.dataset.open); return; }
   if (T.closest('[data-newtrip]')) { openNewTrip(); return; }
