@@ -131,7 +131,7 @@ const BOT_DESCRIPTION = [
   '',
   'Создай поездку и отправь ссылку тем, кто едет с тобой. Править могут все, у кого есть ссылка. Бесплатно.',
   '',
-  'Чтобы начать, открой приложение кнопкой «Открыть».',
+  'Чтобы начать, нажми «Запустить», а затем кнопку «Путеводитель» внизу.',
 ].join('\n');
 
 // Вызов Bot API. Текст сетевой ошибки не показываем: в нём адрес запроса с токеном.
@@ -151,12 +151,11 @@ function botInfo() {
   console.log('webhook: ' + (url ? url.split('/')[2] + ', в очереди ' + w.result.pending_update_count : 'нет'));
 }
 
-// Описание, подпись в профиле и кнопка меню, которая открывает приложение.
+// Описание и подпись в профиле. Кнопку меню «Путеводитель» не трогаем: она уже открывает приложение.
 function setupBot() {
   const show = function (name, j) { console.log(name + ': ' + (j.ok ? 'готово' : 'ошибка · ' + j.description)); };
   show('описание', tg('setMyDescription', { description: BOT_DESCRIPTION }));
   show('подпись в профиле', tg('setMyShortDescription', { short_description: BOT_ABOUT }));
-  show('кнопка меню', tg('setChatMenuButton', { menu_button: JSON.stringify({ type: 'web_app', text: 'Открыть', web_app: { url: SITE } }) }));
 }
 
 // Аватарка: картинка лежит на сайте (bot-avatar.jpg).
